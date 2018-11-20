@@ -4,7 +4,7 @@ A tool for electrostatic fitting including polarization
 
 Handles the primary functions
 """
-
+import esp_class.efield as efield
 
 def canvas(with_attribution=True):
     """
@@ -32,6 +32,10 @@ def add_func(a,b):
     result=a+b
     return result
 
+def main():
+    print(efield.efield(2))
+
+
 if __name__ == "__main__":
     # Do something if this file is invoked on its own
-    print(canvas())
+    main()

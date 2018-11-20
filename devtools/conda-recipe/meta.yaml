@@ -20,6 +20,7 @@ requirements:
 test:
   requires:
     - pytest
+    - numpy 
   imports:
     - resppol
 

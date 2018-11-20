@@ -31,10 +31,6 @@ install:
     # Install pip only modules
   - pip install codecov
 
-    # Build and install package
-  - conda build --python=$PYTHON_VER devtools/conda-recipe
-  - conda install --use-local resppol
-
 
 script:
   - pytest -v --cov=resppol resppol/tests/

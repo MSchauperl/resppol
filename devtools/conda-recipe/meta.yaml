@@ -12,6 +12,7 @@ requirements:
   host:
     - python
     - setuptools
+    - numpy
 
   run:
     - python

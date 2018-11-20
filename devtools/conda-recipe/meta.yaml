@@ -9,10 +9,10 @@ build:
   number: 0
 
 requirements:
-  host:
+  build:
     - python
-    - setuptools
     - numpy
+    - setuptools
 
   run:
     - python

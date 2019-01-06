@@ -8,6 +8,10 @@ source:
 build:
   number: 0
 
+python:
+  version: 3.6
+  setup_py_install: true
+
 requirements:
   build:
     - python

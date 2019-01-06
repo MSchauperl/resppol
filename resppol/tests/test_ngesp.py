@@ -1,7 +1,7 @@
 # Test of teh ngesp functions
 
-from esp_qalpha import esp, molecule
-from helper import readngesp
+from resppol.esp_qalpha import esp, molecule
+from resppol.helper import readngesp
 import pytest 
 
 #Read in ngesp

@@ -486,3 +486,4 @@ for k in range(len(nconf)):
     chargeout.close()
     log.info('Total time for fitting: {}'.format(timeing))
 output.close()
+

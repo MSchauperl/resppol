@@ -13,6 +13,8 @@ requirements:
     - python
     - numpy
     - setuptools
+    - time
+    - typing
 
   run:
     - python
@@ -21,6 +23,9 @@ test:
   requires:
     - pytest
     - numpy
+    - setuptools
+    - time
+    - typing
   imports:
     - resppol
 

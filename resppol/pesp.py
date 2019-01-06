@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # version 2018/07/03
 
 import sys

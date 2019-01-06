@@ -6,7 +6,7 @@ RESPPOL
 
 A tool for electrostatic fitting including polarization
 
-Add to executable to PATH:
+Add executable to PATH:
 export PATH=/install/directory/resppol/resppol/:$PATH
 Add PYTHONPATH
 export PYTHONPATH=/install/directory/resppol/resppol/

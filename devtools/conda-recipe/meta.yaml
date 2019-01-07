@@ -1,6 +1,6 @@
 package:
-  name: resppol
-  version: "0.0.0"
+   name: pesp
+   version: "0.0.0"
 
 source:
   path: ../..
@@ -14,7 +14,7 @@ python:
 
 requirements:
   build:
-    - python
+    - python=3.6
     - numpy
     - setuptools
     - time

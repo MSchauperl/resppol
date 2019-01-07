@@ -19,6 +19,7 @@ requirements:
     - setuptools
     - time
     - typing
+    - scipy
 
   run:
     - python
@@ -30,6 +31,7 @@ test:
     - setuptools
     - time
     - typing
+    - scipy
   imports:
     - resppol
 

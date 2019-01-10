@@ -1,5 +1,5 @@
 package:
-  name: pesp
+  name: resppol
   version: "0.0.0"
 
 source:
@@ -20,7 +20,7 @@ test:
   requires:
     - pytest
   imports:
-    - pesp
+    - resppol
 
 about:
   home: add_url_here

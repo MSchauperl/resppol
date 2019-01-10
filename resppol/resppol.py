@@ -4,7 +4,7 @@ A tool for electrostatic fitting including polarization
 
 Handles the primary functions
 """
-import efield as efield
+import resppol.efield as efield
 
 def canvas(with_attribution=True):
     """

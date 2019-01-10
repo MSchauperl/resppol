@@ -40,7 +40,7 @@ install:
 
 
 script:
-  - pytest -v --cov=pesp pesp/tests/
+  - pytest -v --cov=resppol resppol/tests/
 
 notifications:
     email: false

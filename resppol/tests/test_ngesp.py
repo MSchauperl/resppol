@@ -5,7 +5,7 @@ from resppol.helper import readngesp
 import pytest 
 
 #Read in ngesp
-ngesp, eext, base = readngesp('./data/test_data/test.ngesp')
+ngesp, eext, base = readngesp('resppol/data/test_data/test.ngesp')
 
 
 def test_espvalues():

@@ -7,7 +7,7 @@ import os
 import numpy as np
 import time
 import copy
-from esp_qalpha import esp, molecule
+from resppol.esp_qalpha import esp, molecule
 import logging as log
 import datetime
 

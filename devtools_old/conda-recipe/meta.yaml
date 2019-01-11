@@ -1,0 +1,41 @@
+package:
+   name: pesp
+   version: "0.0.0"
+
+source:
+  path: ../..
+
+build:
+  number: 0
+
+python:
+  version: 3.6
+  setup_py_install: true
+
+requirements:
+  build:
+    - python=3.6
+    - numpy
+    - setuptools
+    - time
+    - typing
+    - scipy
+
+  run:
+    - python
+
+test:
+  requires:
+    - pytest
+    - numpy
+    - setuptools
+    - time
+    - typing
+    - scipy
+    - python=3.6
+  imports:
+    - resppol
+
+about:
+  home: add_url_here
+  license: MIT License

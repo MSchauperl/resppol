@@ -3,7 +3,7 @@ RESPPOL
 [//]: # (Badges)
 [![Travis Build Status](https://api.travis-ci.com/MSchauperl/resppol.svg?branch=master)](https://travis-ci.com/MSchauperl/resppol)
 [![codecov](https://codecov.io/gh/MSchauperl/resppol/branch/master/graph/badge.svg)](https://codecov.io/gh/MSchauperl/resppol/branch/master)
-
+[![ReadTheDocs](https://resppol.readthedocs.io/en/latest/?badge=latest)](https://readthedocs.org/projects/resppol/badge/?version=latest)
 A tool for electrostatic fitting including polarization
 
 Add executable to PATH:

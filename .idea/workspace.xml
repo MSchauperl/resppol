@@ -4,20 +4,17 @@
     <option name="SCOPE_TYPE" value="3" />
   </component>
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="124" />
-    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="257" />
-    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="384" />
-    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="25" />
+    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="139" />
+    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="293" />
+    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="524" />
+    <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="24" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9b6135c3-2e1b-4a02-b516-140b86516388" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/resppol/data/bohr_def.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/resppol.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/resppol.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resppol/tests/test_charge_fitting.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resppol/examples/MoleculeClass.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/resppol/examples/MoleculeClass.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resppol/molecule.py" beforeDir="false" afterPath="$PROJECT_DIR$/resppol/rpol.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resppol/rpol.py" beforeDir="false" afterPath="$PROJECT_DIR$/resppol/rpol.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resppol/tests/test_1.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -48,41 +45,6 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resppol/bccpol.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3903">
-              <caret line="247" selection-start-line="247" selection-end-line="247" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resppol/run_resppol.py">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resppol/helper.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="12" selection-start-line="12" selection-end-line="12" />
-              <folding>
-                <element signature="e#44#54#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resppol/esp_qalpha.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="31" lean-forward="true" selection-start-line="1" selection-start-column="31" selection-end-line="1" selection-end-column="31" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resppol/resppol.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="90">
@@ -91,14 +53,44 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resppol/rpol.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="13" selection-start-line="13" selection-end-line="13" />
+            <state relative-caret-position="90">
+              <caret line="306" column="38" lean-forward="true" selection-start-line="306" selection-start-column="38" selection-end-line="306" selection-end-column="38" />
               <folding>
-                <element signature="e#696#717#0" expanded="true" />
+                <element signature="e#695#716#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resppol/tests/test_resppol.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="180">
+              <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/resppol/tests/test_charge_fitting.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="526">
+              <caret line="50" column="109" lean-forward="true" selection-start-line="50" selection-start-column="109" selection-end-line="50" selection-end-column="109" />
+              <folding>
+                <element signature="e#44#57#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resppol/tmp/butanol/conf0/molecule0.gesp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="6" column="66" selection-start-line="6" selection-start-column="66" selection-end-line="6" selection-end-column="66" />
             </state>
           </provider>
         </entry>
@@ -122,8 +114,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Jupyter Notebook" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -155,7 +147,10 @@
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/resppol/molecule.py" />
         <option value="$PROJECT_DIR$/resppol/data/bohr_def.txt" />
+        <option value="$PROJECT_DIR$/resppol/tests/test_molecule.py" />
+        <option value="$PROJECT_DIR$/resppol/test_molecule.py" />
         <option value="$PROJECT_DIR$/resppol/rpol.py" />
+        <option value="$PROJECT_DIR$/resppol/tests/test_charge_fitting.py" />
       </list>
     </option>
   </component>
@@ -173,7 +168,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -181,23 +175,41 @@
               <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
               <item name="resppol" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
+              <item name="resppol" type="462c0819:PsiDirectoryNode" />
+              <item name="resppol" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
+              <item name="resppol" type="462c0819:PsiDirectoryNode" />
+              <item name="resppol" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
+              <item name="resppol" type="462c0819:PsiDirectoryNode" />
+              <item name="resppol" type="462c0819:PsiDirectoryNode" />
+              <item name="tmp" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/resppol/tests" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="configurable.group.tools" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.project" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/resppol/" />
       <recent name="$PROJECT_DIR$/resppol/tests" />
+      <recent name="$PROJECT_DIR$/resppol/" />
       <recent name="$PROJECT_DIR$/resppol" />
     </key>
   </component>
@@ -277,45 +289,23 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="resppol" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="resppol" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/resppol" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/resppol/resppol.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration default="true" type="tests" factoryName="py.test">
+      <module name="resppol" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
+      <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;-v&quot;" />
       <option name="_new_target" value="&quot;&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest in michael" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest for test_charge_fitting.test_charge_fitting_1_conformer" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="resppol" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -326,21 +316,73 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;-v&quot;" />
+      <option name="_new_target" value="&quot;test_charge_fitting.test_charge_fitting_1_conformer&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for test_charge_fitting.test_charge_fitting_2_conformers" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="resppol" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/resppol/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;-v&quot;" />
+      <option name="_new_target" value="&quot;test_charge_fitting.test_charge_fitting_2_conformers&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for test_charge_fitting.test_passes_without_info" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="resppol" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/resppol/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;-v&quot;" />
+      <option name="_new_target" value="&quot;test_charge_fitting.test_passes_without_info&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest in test_charge_fitting.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="resppol" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/resppol/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;-v&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/resppol/tests/test_charge_fitting.py&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.resppol" />
       <item itemvalue="Python.molecule" />
-      <item itemvalue="Python tests.pytest in michael" />
+      <item itemvalue="Python tests.pytest in test_charge_fitting.py" />
+      <item itemvalue="Python tests.pytest for test_charge_fitting.test_charge_fitting_1_conformer" />
+      <item itemvalue="Python tests.pytest for test_charge_fitting.test_charge_fitting_2_conformers" />
+      <item itemvalue="Python tests.pytest for test_charge_fitting.test_passes_without_info" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.molecule" />
-        <item itemvalue="Python tests.pytest in michael" />
-        <item itemvalue="Python.resppol" />
+        <item itemvalue="Python tests.pytest in test_charge_fitting.py" />
+        <item itemvalue="Python tests.pytest for test_charge_fitting.test_charge_fitting_1_conformer" />
+        <item itemvalue="Python tests.pytest for test_charge_fitting.test_passes_without_info" />
+        <item itemvalue="Python tests.pytest for test_charge_fitting.test_charge_fitting_2_conformers" />
       </list>
     </recent_temporary>
   </component>
@@ -358,20 +400,47 @@
       <workItem from="1555533606637" duration="7588000" />
       <workItem from="1555963498745" duration="16478000" />
       <workItem from="1555989289920" duration="2339000" />
-      <workItem from="1556571875898" duration="8109000" />
+      <workItem from="1556571875898" duration="14009000" />
+      <workItem from="1556657755109" duration="10269000" />
+      <workItem from="1556723644390" duration="2858000" />
+      <workItem from="1556728780157" duration="7622000" />
     </task>
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="pytest_in_test_resppol_py - 2018.11.20 at 09h 38m 37s.xml">
-      <configuration name="pytest in test_resppol.py" configurationId="tests" />
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 02m 34s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
     </history-entry>
-    <history-entry file="pytest_in_test_resppol_py - 2018.11.20 at 09h 38m 55s.xml">
-      <configuration name="pytest in test_resppol.py" configurationId="tests" />
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 04m 31s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 05m 17s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_charge_fitting_test_charge_fitting_1_conformer - 2019.05.01 at 11h 08m 12s.xml">
+      <configuration name="pytest for test_charge_fitting.test_charge_fitting_1_conformer" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 08m 20s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 10m 01s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 11m 17s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 11m 39s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 12m 57s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_in_test_charge_fitting_py - 2019.05.01 at 11h 38m 39s.xml">
+      <configuration name="pytest in test_charge_fitting.py" configurationId="tests" />
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="47564000" />
+    <option name="totallyTimeSpent" value="74213000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -383,35 +452,36 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="-4" width="1920" height="1084" extended-state="6" />
+    <frame x="-1" y="-4" width="1922" height="1085" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14407684" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14887941" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" order="0" />
       <window_info anchor="bottom" id="Docker" order="1" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="2" />
-      <window_info anchor="bottom" id="Find" order="3" />
+      <window_info anchor="bottom" id="Find" order="3" weight="0.32925585" />
       <window_info active="true" anchor="bottom" id="Run" order="4" visible="true" weight="0.31906217" />
       <window_info anchor="bottom" id="Debug" order="5" weight="0.39959225" />
       <window_info anchor="bottom" id="Cvs" order="6" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="7" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="8" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info anchor="bottom" id="Terminal" order="10" weight="0.32948583" />
+      <window_info anchor="bottom" id="Terminal" order="10" weight="0.32925585" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="12" weight="0.32948583" />
       <window_info anchor="bottom" id="Inspection Results" order="13" weight="0.32925585" />
       <window_info anchor="bottom" id="Jupyter" order="14" weight="0.32925585" />
       <window_info anchor="right" id="Database" order="0" weight="0.32977587" />
       <window_info anchor="right" id="Commander" order="1" weight="0.4" />
-      <window_info anchor="right" id="SciView" order="2" />
+      <window_info anchor="right" id="SciView" order="2" sideWeight="0.8517964" visible="true" weight="0.06670224" />
       <window_info anchor="right" id="Ant Build" order="3" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="4" weight="0.25" />
-      <window_info anchor="right" x="0" y="0" width="430" height="856" id="Documentation" order="5" side_tool="true" visible="true" weight="0.06296691" />
+      <window_info anchor="right" x="0" y="0" width="430" height="856" id="Documentation" order="5" sideWeight="0.1482036" side_tool="true" visible="true" weight="0.06670224" />
       <window_info anchor="right" id="R Graphics" order="6" />
       <window_info anchor="right" id="R Packages" order="7" />
+      <window_info anchor="right" id="Coverage" order="8" side_tool="true" />
     </layout>
     <layout-to-restore>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13767342" />
@@ -440,19 +510,13 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/resppol/rpol.py</url>
-          <line>410</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/resppol$molecule.coverage" NAME="molecule Coverage Results" MODIFIED="1556580053027" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol" />
+    <SUITE FILE_PATH="coverage/resppol$pytest_for_test_charge_fitting_test_charge_fitting_2_conformers.coverage" NAME="pytest for test_charge_fitting.test_charge_fitting_2_conformers Coverage Results" MODIFIED="1556732268774" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol/tests" />
+    <SUITE FILE_PATH="coverage/resppol$molecule.coverage" NAME="molecule Coverage Results" MODIFIED="1556736684140" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol" />
+    <SUITE FILE_PATH="coverage/resppol$pytest_for_test_charge_fitting_test_passes_without_info.coverage" NAME="pytest for test_charge_fitting.test_passes_without_info Coverage Results" MODIFIED="1556732628896" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol/tests" />
+    <SUITE FILE_PATH="coverage/resppol$pytest_in_test_molecule_py__1_.coverage" NAME="pytest in test_molecule.py (1) Coverage Results" MODIFIED="1556729432991" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol" />
+    <SUITE FILE_PATH="coverage/resppol$pytest_for_test_charge_fitting_test_charge_fitting_1_conformer.coverage" NAME="pytest for test_charge_fitting.test_charge_fitting_1_conformer Coverage Results" MODIFIED="1556734090641" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol/tests" />
+    <SUITE FILE_PATH="coverage/resppol$pytest_in_test_charge_fitting_py.coverage" NAME="pytest in test_charge_fitting.py Coverage Results" MODIFIED="1556735916622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol/tests" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/.travis.yml">
@@ -499,20 +563,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/tests/test_resppol.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" selection-start-line="16" selection-end-line="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/tests/test_1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="17" selection-start-column="17" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resppol/_version.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="150">
@@ -545,26 +595,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/helper.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="12" selection-start-line="12" selection-end-line="12" />
-          <folding>
-            <element signature="e#44#54#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/docs/index.rst">
       <provider editor-type-id="text-editor" />
       <provider selected="true" editor-type-id="restructured-text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/bccpol.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3903">
-          <caret line="247" selection-start-line="247" selection-end-line="247" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/resppol/examples/MoleculeClass.ipynb">
       <provider selected="true" editor-type-id="jupyter-editor" />
@@ -576,8 +609,67 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/MyNotes.ipynb">
-      <provider selected="true" editor-type-id="jupyter-editor" />
+    <entry file="file://$PROJECT_DIR$/resppol/data/bohr_def.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="26" selection-start-line="1" selection-start-column="7" selection-end-line="1" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../anaconda3/envs/openff/lib/python3.6/site-packages/pint/registry.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="547">
+          <caret line="748" selection-start-line="748" selection-end-line="748" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/bccpol.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3555">
+          <caret line="247" selection-start-line="247" selection-end-line="247" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/run_resppol.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/helper.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="12" selection-start-line="12" selection-end-line="12" />
+          <folding>
+            <element signature="e#44#54#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/esp_qalpha.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18510">
+          <caret line="1239" column="38" selection-start-line="1239" selection-start-column="38" selection-end-line="1239" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/tests/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/tests/test_molecule.py" />
+    <entry file="file://$PROJECT_DIR$/resppol/resppol.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="7" selection-start-line="6" selection-start-column="7" selection-end-line="6" selection-end-column="7" />
+        </state>
+      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/resppol/tmp/butanol/conf0/molecule_X+.gesp">
       <provider selected="true" editor-type-id="text-editor">
@@ -586,43 +678,63 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/data/bohr_def.txt">
+    <entry file="file://$PROJECT_DIR$/resppol/MyNotes.ipynb">
+      <provider selected="true" editor-type-id="jupyter-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/test_molecule.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="26" selection-start-line="1" selection-start-column="7" selection-end-line="1" selection-end-column="31" />
+        <state relative-caret-position="45">
+          <caret line="3" column="28" selection-start-line="3" selection-start-column="28" selection-end-line="3" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/tests/test_1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="17" selection-start-column="17" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/tests/test_ngesp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="21" selection-start-line="11" selection-start-column="21" selection-end-line="11" selection-end-column="21" />
+          <folding>
+            <element signature="e#31#75#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/resppol/tmp/butanol/conf0/molecule0.gesp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="315">
-          <caret line="21" column="58" selection-start-line="21" selection-start-column="58" selection-end-line="21" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/resppol.py">
-      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
-          <caret line="6" column="7" selection-start-line="6" selection-start-column="7" selection-end-line="6" selection-end-column="7" />
+          <caret line="6" column="66" selection-start-line="6" selection-start-column="66" selection-end-line="6" selection-end-column="66" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/run_resppol.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/esp_qalpha.py">
+    <entry file="file://$PROJECT_DIR$/resppol/tests/test_resppol.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="31" lean-forward="true" selection-start-line="1" selection-start-column="31" selection-end-line="1" selection-end-column="31" />
+        <state relative-caret-position="180">
+          <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/resppol/rpol.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" selection-start-line="13" selection-end-line="13" />
+        <state relative-caret-position="90">
+          <caret line="306" column="38" lean-forward="true" selection-start-line="306" selection-start-column="38" selection-end-line="306" selection-end-column="38" />
           <folding>
-            <element signature="e#696#717#0" expanded="true" />
+            <element signature="e#695#716#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/tests/test_charge_fitting.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="526">
+          <caret line="50" column="109" lean-forward="true" selection-start-line="50" selection-start-column="109" selection-end-line="50" selection-end-column="109" />
+          <folding>
+            <element signature="e#44#57#0" expanded="true" />
           </folding>
         </state>
       </provider>

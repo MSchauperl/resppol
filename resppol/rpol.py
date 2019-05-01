@@ -11,7 +11,6 @@ This module should convert a mol2 file int a Molecule object and expose all nece
    * Determine the bonds based on a smirnoff input file
 """
 
-
 # =============================================================================================
 # GLOBAL IMPORTS
 # =============================================================================================
@@ -22,7 +21,7 @@ from openeye import oechem
 import openforcefield.topology as openff
 from openforcefield.typing.engines.smirnoff import ForceField
 from scipy.spatial import distance
-
+import os
 # Initialize units
 from pint import UnitRegistry
 
@@ -35,7 +34,7 @@ ureg.define('bohr = 0.52917721067 * angstrom')
 # =============================================================================================
 biological_elements = [1, 3, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 19, 20, 34, 35, 53]
 
-
+ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 # =============================================================================================
 # PRIVATE SUBROUTINES
 # =============================================================================================
@@ -77,7 +76,16 @@ def find_eq_atoms(mol1):
         for element in ele:
             # Making sure we have not already covered this pair of atoms
             if [element, i] not in sorted_eq_atoms:
-                sorted_eq_atoms.append([i, element])
+                    sorted_eq_atoms.append([i,element])
+    tmp=[]
+    for k,ele1 in enumerate(sorted_eq_atoms):
+        exclude=0
+        for ele2 in sorted_eq_atoms[:k]:
+            if ele1[0] == ele2[0]:
+                exclude = 1
+        if exclude == 0:
+            tmp.append(ele1)
+    sorted_eq_atoms=tmp
 
     return (sorted_eq_atoms)
 
@@ -95,13 +103,20 @@ class TrainingSet():
         f.close()
         for i, line in enumerate(lines):
             mol2file = line.split()[1]
-            add_molecule(Molecule(mol2file))
+            # noinspection PyTypeChecker
+            self.add_molecule(Molecule(mol2file))
 
 
-def add_molecule(self, datei):
-    self.molecules.append(Molecule(datei))
+    def add_molecule(self, datei):
+        self.molecules.append(Molecule(datei))
 
+    def build_matrix_A(self):
+        for molecule in self.molecules:
+            molecule.build_matrix_A()
 
+    def build_matrix_A(self):
+        for molecule in self.molecules:
+            molecule.build_vector_B()
 # =============================================================================================
 # Molecule
 # =============================================================================================
@@ -149,11 +164,15 @@ class Molecule:
         self.offmol = openff.Molecule.from_openeye(self.oemol)
         self.offtop = openff.Topology.from_molecules([self.offmol])
 
-        # Labe the atoms and bonds using a offxml file
-        forcefield = ForceField('./tmp/BCCPOL.offxml')
+        # Label the atoms and bonds using a offxml file
+        forcefield = ForceField(os.path.join(ROOT_DIR_PATH,'resppol/tmp/BCCPOL.offxml'))
 
         # Run the parameter labeling
         molecule_parameter_list = forcefield.label_molecules(self.offtop)
+
+        # set molecule charge
+        #self._charge=openff.Molecule.total_charge
+        self._charge=0
 
         # Initialize the bonds, atoms
         self._bonds = list()
@@ -189,10 +208,10 @@ class Molecule:
         if self.offmol.n_atoms != conf.n_atoms or \
                 self.offmol.n_bonds != conf.n_bonds or \
                 self.offmol.n_angles != conf.n_angles:
-            log.error('Molecule either not found or does not have a 3D structure')
-            raise Exception('Molecule either not found or does not have a 3D structure')
+            log.error('Conformer and Molecule does not match')
+            raise Exception('Conformer and Molecule does not match')
         else:
-            self.conformers.append(Conformer(conf))
+            self.conformers.append(Conformer(conf,molecule = self))
         # Checks if this conformer is from this moleule based on atom names
 
     @property
@@ -204,8 +223,23 @@ class Molecule:
         return find_eq_atoms(self.oemol)
 
     def build_matrix_A(self):
-        for conformer in self.conformers():
+        self.A = 0.0
+        for conformer in self.conformers:
             conformer.build_matrix_A()
+            self.A += conformer.A
+
+
+    def build_vector_B(self):
+        self.B = 0.0
+        for conformer in self.conformers:
+            conformer.build_vector_B()
+            self.B += conformer.B
+
+
+    def optimize_charges(self):
+        self.build_matrix_A()
+        self.build_vector_B()
+        self.q = Q_(np.linalg.solve(self.A, self.B),'elementary_charge')
 
 
 # =============================================================================================
@@ -245,30 +279,100 @@ class Conformer:
 
     """
 
-    def __init__(self, conf):
+    def __init__(self, conf, molecule=None):
         """
 
         :param conf: openff molecule file
         """
-        self.atom_positions = Q_(conf.conformers[0]._value, 'angstrom')
-        self.natoms=len(self.atom_positions.magnitude)
+        self.atom_positions = Q_(np.array(conf.conformers[0]._value), 'angstrom')
+        self.atom_positions_angstrom = self.atom_positions.to('angstrom').magnitude
+        self.natoms = len(self.atom_positions.magnitude)
         self.baseESP = None
         self.polESP = list()
+        self._molecule=molecule
 
-    def get_grid_coord(self, grid_txt):
-        self.grid_coord = self.baseESP.positions
+    def get_grid_coord(self):
+        self.grid_coord_angstrom = self.baseESP.positions.to('angstrom').magnitude
         self.npoints = len(self.baseESP.positions.magnitude)
 
-    def get_distances(self):
-        pass
 
-    def add_baseESP(self, *args):
-        self.baseESP = BCCUnpolESP(*args)
+    def add_baseESP(self, *args,):
+        self.baseESP = BCCUnpolESP(*args,conformer=self)
+
+        # Check if atomic coordinates match
+        for atom1 in self.baseESP.atom_positions:
+            atom_is_present=0
+            for atom2 in self.atom_positions:
+                if np.linalg.norm(atom1.to('angstrom').magnitude-atom2.to('angstrom').magnitude) < 0.01:
+                    atom_is_present =1
+            if atom_is_present == 0:
+                raise Exception("ESP grid does not belong to the conformer")
+
 
     def add_polESP(self, *args):
-        self.polESP.append(BCCPolESP(*args))
+        self.polESP.append(BCCPolESP(*args,conformer=self))
 
-    def build_Matrix_A(self):
+
+    # Build the matrix A for the charge optimization
+    def build_matrix_A(self):
+        self.get_distances()
+
+        """
+        Fast method for only optimizing charges.
+
+        :return:
+        """
+        # Determine size of matrix for this molecule
+        # every atom is one line
+        # one line to restrain the overall charge of the molecule
+        # one line for every pair of equivalent atoms
+        self.Alines=self.natoms + 1 + len(self._molecule.chemical_eq_atoms)
+        self.A = np.zeros((self.Alines, self.Alines))
+        for j in range(self.natoms):
+            for k in range(j + 1):
+                self.A[j][k] = np.dot(self.dist[j], self.dist[k])
+
+        # Symmetric matrix -> copy diagonal elements, add total charge restrain
+        for j in range(self.natoms):
+            for k in range(j):
+                self.A[k][j] = self.A[j][k]
+            self.A[self.natoms][j] = 1.0
+            self.A[j][self.natoms] = 1.0
+
+        # Add charge restraints for equivalent atoms
+        for k,eq_atoms in enumerate(self._molecule.chemical_eq_atoms):
+            if eq_atoms[1] > 0:
+                self.A[self.natoms + 1 + k][eq_atoms[0]] = 1
+                self.A[self.natoms + 1 + k][eq_atoms[1]] = -1
+                self.A[eq_atoms[0]][self.natoms + 1 + k] = 1
+                self.A[eq_atoms[1]][self.natoms + 1 + k] = -1
+
+
+    def build_vector_B(self):
+        """
+        Creates the Vector B for the charge fitting.
+        :return:
+        """
+        # Determine size of the vector for this molecule
+        # every atom is one line
+        # one line to restrain the overall charge of the molecule
+        # one line for every pair of equivalent atoms
+        self.Alines=self.natoms + 1 + len(self._molecule.chemical_eq_atoms)
+        self.B = np.zeros(self.Alines)
+        self.esp_values=self.baseESP.esp_values.to('elementary_charge / angstrom').magnitude
+
+        for k in range(self.natoms):
+            self.B[k] = np.dot(self.esp_values, self.dist[k])
+            self.B[self.natoms] = self._molecule._charge
+        for k,eq_atoms in enumerate(self._molecule.chemical_eq_atoms):
+            if eq_atoms[1] > 0:
+                self.B[self.natoms + 1 + k] = 0.0
+
+    def optimize_charges(self):
+        self.qd = np.linalg.solve(self.A, self.B)
+
+
+    def build_matrix_Abcc(self):
         self.get_distances()
 
     def get_distances(self):
@@ -281,47 +385,73 @@ class Conformer:
         self.dist_y = np.zeros((self.natoms, self.npoints))
         self.dist_z = np.zeros((self.natoms, self.npoints))
 
-        self.dist = 1. / distance.cdist(self.atom_positions, self.grid_coord)
+        self.dist = 1. / distance.cdist(self.atom_positions_angstrom, self.grid_coord_angstrom)
         self.dist_3 = np.power(self.dist, 3)  # maybe free afterwards
-        self.dist_x = -np.multiply(np.subtract.outer(np.transpose(self.atom_positions)[0], np.transpose(self.grid_coord)[0]),
-                                   self.dist_3)
+        self.dist_x = -np.multiply(
+            np.subtract.outer(np.transpose(self.atom_positions_angstrom)[0], np.transpose(self.grid_coord_angstrom)[0]),
+            self.dist_3)
         # self.dist_x2=np.multiply(np.transpose(np.subtract.outer(np.transpose(self.grid_coord)[0],np.transpose(self.atom_positions)[0])),self.dist_3)
-        self.dist_y = -np.multiply(np.subtract.outer(np.transpose(self.atom_positions)[1], np.transpose(self.grid_coord)[1]),
-                                   self.dist_3)
-        self.dist_z = -np.multiply(np.subtract.outer(np.transpose(self.atom_positions)[2], np.transpose(self.grid_coord)[2]),
-                                   self.dist_3)
+        self.dist_y = -np.multiply(
+            np.subtract.outer(np.transpose(self.atom_positions_angstrom)[1], np.transpose(self.grid_coord_angstrom)[1]),
+            self.dist_3)
+        self.dist_z = -np.multiply(
+            np.subtract.outer(np.transpose(self.atom_positions_angstrom)[2], np.transpose(self.grid_coord_angstrom)[2]),
+            self.dist_3)
         del self.dist_3
 
         # Distances between atoms and atoms
-        self.adist = np.zeros((self.natoms, self.natoms))
-        self.adist_3 = np.zeros((self.natoms, self.natoms))
-        self.adist_5 = np.zeros((self.natoms, self.natoms))
-        self.adist_x = np.zeros((self.natoms, self.natoms))
-        self.adist_y = np.zeros((self.natoms, self.natoms))
-        self.adist_z = np.zeros((self.natoms, self.natoms))
-        self.adistb_x = np.zeros((self.natoms, self.natoms))
-        self.adistb_y = np.zeros((self.natoms, self.natoms))
-        self.adistb_z = np.zeros((self.natoms, self.natoms))
+        self.diatomic_dist = np.zeros((self.natoms, self.natoms))
+        self.diatomic_dist_3 = np.zeros((self.natoms, self.natoms))
+        self.diatomic_dist_5 = np.zeros((self.natoms, self.natoms))
+        self.diatomic_dist_x = np.zeros((self.natoms, self.natoms))
+        self.diatomic_dist_y = np.zeros((self.natoms, self.natoms))
+        self.diatomic_dist_z = np.zeros((self.natoms, self.natoms))
+        self.diatomic_distb_x = np.zeros((self.natoms, self.natoms))
+        self.diatomic_distb_y = np.zeros((self.natoms, self.natoms))
+        self.diatomic_distb_z = np.zeros((self.natoms, self.natoms))
 
-        self.adist = distance.cdist(self.atom_positions, self.atom_positions)
+        self.diatomic_dist = distance.cdist(self.atom_positions_angstrom, self.atom_positions_angstrom)
         di = np.diag_indices(self.natoms)
-        self.adist[di] = 1.0E10
+        self.diatomic_dist[di] = 1.0E10
         # self.adist=np.fill_diagonal(self.adist,1.0)
-        self.adist = 1. / self.adist
-        self.adist_3 = np.power(self.adist, 3)
-        self.adist_5 = np.power(self.adist, 5)
-        self.adist[di] = 0.0
-        self.adist_x = np.multiply(np.subtract.outer(np.transpose(self.atom_positions)[0], np.transpose(self.atom_positions)[0]),
-                                   self.adist_3)  # X distance between two atoms divided by the dist^3
-        self.adist_y = np.multiply(np.subtract.outer(np.transpose(self.atom_positions)[1], np.transpose(self.atom_positions)[1]),
-                                   self.adist_3)
-        self.adist_z = np.multiply(np.subtract.outer(np.transpose(self.atom_positions)[2], np.transpose(self.atom_positions)[2]),
-                                   self.adist_3)
-        self.adistb_x = np.subtract.outer(np.transpose(self.atom_positions)[0],
-                                          np.transpose(self.atom_positions)[0])  # X distances between two atoms
-        self.adistb_y = np.subtract.outer(np.transpose(self.atom_positions)[1], np.transpose(self.atom_positions)[1])
-        self.adistb_z = np.subtract.outer(np.transpose(self.atom_positions)[2], np.transpose(self.atom_positions)[2])
+        self.diatomic_dist = 1. / self.diatomic_dist
+        self.diatomic_dist_3 = np.power(self.diatomic_dist, 3)
+        self.diatomic_dist_5 = np.power(self.diatomic_dist, 5)
+        self.diatomic_dist[di] = 0.0
+        self.diatomic_dist_x = np.multiply(np.subtract.outer(np.transpose(self.atom_positions_angstrom)[0],
+                                                             np.transpose(self.atom_positions_angstrom)[0]),
+                                           self.diatomic_dist_3)  # X distance between two atoms divided by the dist^3
+        self.diatomic_dist_y = np.multiply(np.subtract.outer(np.transpose(self.atom_positions_angstrom)[1],
+                                                             np.transpose(self.atom_positions_angstrom)[1]),
+                                           self.diatomic_dist_3)
+        self.diatomic_dist_z = np.multiply(np.subtract.outer(np.transpose(self.atom_positions_angstrom)[2],
+                                                             np.transpose(self.atom_positions_angstrom)[2]),
+                                           self.diatomic_dist_3)
+        self.diatomic_distb_x = np.subtract.outer(np.transpose(self.atom_positions_angstrom)[0],
+                                                  np.transpose(self.atom_positions_angstrom)[
+                                                      0])  # X distances between two atoms
+        self.diatomic_distb_y = np.subtract.outer(np.transpose(self.atom_positions_angstrom)[1],
+                                                  np.transpose(self.atom_positions_angstrom)[1])
+        self.diatomic_distb_z = np.subtract.outer(np.transpose(self.atom_positions_angstrom)[2],
+                                                  np.transpose(self.atom_positions_angstrom)[2])
 
+
+    def delete_distances(self):
+        """Deletes the all calculated distances to free memory."""
+        del self.dist
+        del self.dist_x
+        del self.dist_y
+        del self.dist_z
+
+        del self.adist
+        del self.adist_3
+        del self.adist_5
+        del self.adist_x
+        del self.adist_y
+        del self.adist_z
+        del self.adistb_x
+        del self.adistb_y
+        del self.adistb_z
 
 # =============================================================================================
 # ESPGRID
@@ -348,15 +478,22 @@ class ESPGRID:
             lines = f.readlines()
             f.close()
             for i, line in enumerate(lines):
-                if 'ATOMIC' in line and 'COORDINTES' in line:
-                    self.natoms = int(line.strip('\n')[-1])
+                if 'ATOMIC' in line and 'COORDINATES' in line:
+                    self.natoms = int(line.strip('\n').split()[-1])
+                    for j in range(self.natoms):
+                        entry=lines[i+1+j].replace('D', 'E').split()
+                        self.atoms.append(entry[0])
+                        self.atom_positions.append(Q_([float(entry[k]) for k in range(1,4,1)],'bohr'))
                 if 'GRID' in line:
-                    self.ngrid = int(line.strip('\n')[-1])
+                    self.ngrid = int(line.strip('\n').split()[-1])
                     grid = lines[i + 1:i + 1 + self.ngrid]
                     break
+            # noinspection PyUnboundLocalVariable
             for i, line in enumerate(grid):
-                grid[i] = line.replace('D', 'E').split()
-            self.positions = Q_(np.array(grid)[:, 1], 'bohr')
+                grid[i] = [float(ele) for ele in line.replace('D', 'E').split()]
+
+
+            self.positions = Q_(np.array(grid)[:, 1:4], 'bohr')
             self.esp_values = Q_(np.array(grid)[:, 0], 'elementary_charge / bohr')
         elif self.gridtype == 'psi4':
             self.positions = Q_(np.loadtxt(args[0]), 'angstrom')
@@ -372,13 +509,16 @@ class BCCUnpolESP(ESPGRID):
 
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args,conformer=None):
         # Decide if we have a Gaussian grid or a psi4 grid
         self.gridtype = None
         self.natoms = -1
+        self.atoms = []
+        self.atom_positions = []
         self.define_grid(*args)
         self.esp_values = None
         self.positions = None
+        self.conformer= conformer
 
         # External e-field is 0 in all directions
         vector = Q_([0, 0, 0], 'elementary_charge / bohr / bohr')
@@ -401,11 +541,19 @@ class BCCPolESP(ESPGRID):
 
 
 if __name__ == '__main__':
-    datei = '/home/michael/resppol/resppol/tmp/butanolsybyl.mol2'
+    datei = os.path.join(ROOT_DIR_PATH,'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = Molecule(datei)
+    test.add_conformer_from_mol2(datei)
+
+    datei = '/home/michael/resppol/resppol/tmp/butanol/conf1/mp2_1.mol2'
     test.add_conformer_from_mol2(datei)
     test.conformers
     espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/molecule0.gesp'
-    # test.conformers[0].add_polESP(espfile, "vector")
     test.conformers[0].add_baseESP(espfile, )
+    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf1/molecule1.gesp'
+    test.conformers[1].add_baseESP(espfile, )
+    test.build_matrix_A()
+    test.build_vector_B()
+    test.optimize_charges()
+    print(test.q[:len(test._atoms)])
     print('FINISH')

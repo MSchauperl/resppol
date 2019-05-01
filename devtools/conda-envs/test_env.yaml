@@ -2,6 +2,7 @@ name: test
 channels:
   - openeye
   - rdkit
+  - omnia
 
 dependencies:
     # Base depends
@@ -13,6 +14,7 @@ dependencies:
   - numpy
   - openeye-toolkits
   - rdkit
+  - openforcefield
 
     # Testing
   - pytest

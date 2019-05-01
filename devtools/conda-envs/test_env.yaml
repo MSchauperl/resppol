@@ -1,5 +1,8 @@
 name: test
 channels:
+  - openeye
+  - rdkit
+
 dependencies:
     # Base depends
   - python
@@ -8,6 +11,8 @@ dependencies:
   - typing
   - scipy
   - numpy
+  - openeye-toolkits
+  - rdkit
 
     # Testing
   - pytest

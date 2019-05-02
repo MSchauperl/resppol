@@ -15,6 +15,7 @@ dependencies:
   - openeye-toolkits
   - rdkit
   - openforcefield
+  - pint
 
     # Testing
   - pytest

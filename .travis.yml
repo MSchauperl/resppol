@@ -33,6 +33,7 @@ before_install:
 
 install:
 
+
     # Create test environment for package
   - python devtools/scripts/create_conda_env.py -n=test -p=$PYTHON_VER devtools/conda-envs/test_env.yaml
     # Activate the test environment
@@ -40,6 +41,9 @@ install:
     # Build and install package
   - python setup.py develop --no-deps
 
+  # Install pip only modules
+  - pip install codecov
+  - pip install coverage==4.4
 
 script:
   - pytest -v --cov=resppol resppol/tests/

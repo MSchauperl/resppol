@@ -10,14 +10,7 @@
     <bookmark url="file://$PROJECT_DIR$/resppol/rpol.py" line="24" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b6135c3-2e1b-4a02-b516-140b86516388" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/resppol/data/test_data/BCCPOL.offxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/devtools/conda-envs/test_env.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/devtools/conda-envs/test_env.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resppol/rpol.py" beforeDir="false" afterPath="$PROJECT_DIR$/resppol/rpol.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resppol/tests/test_charge_fitting.py" beforeDir="false" afterPath="$PROJECT_DIR$/resppol/tests/test_charge_fitting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-    </list>
+    <list default="true" id="9b6135c3-2e1b-4a02-b516-140b86516388" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,11 +42,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resppol/rpol.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="451">
-              <caret line="557" column="44" selection-start-line="557" selection-start-column="44" selection-end-line="557" selection-end-column="44" />
-              <folding>
-                <element signature="e#695#716#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="375">
+              <caret line="25" column="28" selection-start-line="25" selection-start-column="28" selection-end-line="25" selection-end-column="28" />
             </state>
           </provider>
         </entry>
@@ -75,20 +65,29 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resppol/tests/test_resppol.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
+            <state relative-caret-position="135">
+              <caret line="11" column="34" selection-start-line="11" selection-start-column="34" selection-end-line="11" selection-end-column="34" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resppol/tests/test_charge_fitting.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="17" column="16" selection-start-line="17" selection-start-column="16" selection-end-line="17" selection-end-column="16" />
+              <folding>
+                <element signature="e#44#57#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/resppol/tests/test_charge_fitting.py">
+        <entry file="file://$PROJECT_DIR$/.travis.yml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="795">
-              <caret line="53" selection-start-line="53" selection-end-line="53" />
-              <folding>
-                <element signature="e#44#57#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="405">
+              <caret line="27" column="13" selection-start-line="27" selection-start-column="13" selection-end-line="27" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -164,23 +163,6 @@
             <path>
               <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
               <item name="resppol" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
-              <item name="resppol" type="462c0819:PsiDirectoryNode" />
-              <item name="devtools" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
-              <item name="resppol" type="462c0819:PsiDirectoryNode" />
-              <item name="devtools" type="462c0819:PsiDirectoryNode" />
-              <item name="conda-envs" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
-              <item name="resppol" type="462c0819:PsiDirectoryNode" />
-              <item name="devtools" type="462c0819:PsiDirectoryNode" />
-              <item name="conda-recipe" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="resppol" type="b2602c69:ProjectViewProjectNode" />
@@ -408,7 +390,7 @@
       <workItem from="1556657755109" duration="10269000" />
       <workItem from="1556723644390" duration="2858000" />
       <workItem from="1556728780157" duration="14915000" />
-      <workItem from="1556832998411" duration="260000" />
+      <workItem from="1556832998411" duration="2417000" />
     </task>
     <servers />
   </component>
@@ -445,7 +427,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="81766000" />
+    <option name="totallyTimeSpent" value="83923000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -460,7 +442,7 @@
     <frame x="0" y="-4" width="1920" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15048026" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15048026" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" order="0" />
@@ -480,7 +462,7 @@
       <window_info anchor="bottom" id="Jupyter" order="14" weight="0.32925585" />
       <window_info anchor="right" id="Database" order="0" weight="0.32977587" />
       <window_info anchor="right" id="Commander" order="1" weight="0.4" />
-      <window_info active="true" anchor="right" id="SciView" order="2" sideWeight="0.8521916" visible="true" weight="0.06670224" />
+      <window_info anchor="right" id="SciView" order="2" sideWeight="0.8521916" visible="true" weight="0.06670224" />
       <window_info anchor="right" id="Ant Build" order="3" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="4" weight="0.25" />
       <window_info anchor="right" x="0" y="0" width="430" height="856" id="Documentation" order="5" sideWeight="0.14780836" side_tool="true" visible="true" weight="0.06670224" />
@@ -514,6 +496,17 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/resppol/rpol.py</url>
+          <line>476</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/resppol$pytest_for_test_charge_fitting_test_charge_fitting_2_conformers.coverage" NAME="pytest for test_charge_fitting.test_charge_fitting_2_conformers Coverage Results" MODIFIED="1556732268774" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/resppol/tests" />
@@ -712,13 +705,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.travis.yml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="27" column="13" selection-start-line="27" selection-start-column="13" selection-end-line="27" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/devtools/conda-envs/test_env.yaml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
@@ -726,13 +712,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/resppol/tmp/mol1/conf1/grid.dat">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.codecov.yml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/resppol/rpol.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="451">
-          <caret line="557" column="44" selection-start-line="557" selection-start-column="44" selection-end-line="557" selection-end-column="44" />
-          <folding>
-            <element signature="e#695#716#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="375">
+          <caret line="25" column="28" selection-start-line="25" selection-start-column="28" selection-end-line="25" selection-end-column="28" />
         </state>
       </provider>
     </entry>
@@ -743,26 +732,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resppol/tmp/mol1/conf1/grid.dat">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/resppol/tests/test_resppol.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
+        <state relative-caret-position="135">
+          <caret line="11" column="34" selection-start-line="11" selection-start-column="34" selection-end-line="11" selection-end-column="34" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.codecov.yml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/resppol/tests/test_charge_fitting.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="795">
-          <caret line="53" selection-start-line="53" selection-end-line="53" />
+        <state relative-caret-position="255">
+          <caret line="17" column="16" selection-start-line="17" selection-start-column="16" selection-end-line="17" selection-end-column="16" />
           <folding>
             <element signature="e#44#57#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.travis.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="405">
+          <caret line="27" column="13" selection-start-line="27" selection-start-column="13" selection-end-line="27" selection-end-column="13" />
         </state>
       </provider>
     </entry>

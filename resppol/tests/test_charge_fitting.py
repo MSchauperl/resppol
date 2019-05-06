@@ -44,6 +44,7 @@ def test_charge_fitting_2_conformers():
     assert test.q[:len(test._atoms)].units == 'elementary_charge'
 
 """
+@pytest.mark.slow
 def test_load_wrong_conformer():
     with pytest.raises(Exception):
         test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))

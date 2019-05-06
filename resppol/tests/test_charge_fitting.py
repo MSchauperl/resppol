@@ -14,7 +14,7 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 ######################################################################################
 
 
-
+"""
 @pytest.mark.slow
 def test_charge_fitting_1_conformer():
     test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
@@ -57,3 +57,4 @@ def test_load_wrong_esp():
         test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/molecule0.gesp'))
+"""

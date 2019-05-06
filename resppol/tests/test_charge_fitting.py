@@ -3,7 +3,7 @@ Test of the charge fitting process
 """
 
 import pytest
-import resppol.rpol as rpol
+import resppol
 import os
 
 ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..')
@@ -44,10 +44,9 @@ def test_charge_fitting_2_conformers():
     assert test.q[:len(test._atoms)].units == 'elementary_charge'
 
 """
-@pytest.mark.slow
 def test_load_wrong_conformer():
     with pytest.raises(Exception):
-        test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
 
 """

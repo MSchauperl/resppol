@@ -43,14 +43,14 @@ def test_charge_fitting_2_conformers():
         assert test.q[i].magnitude == pytest.approx(charges[i], 0.001)
     assert test.q[:len(test._atoms)].units == 'elementary_charge'
 
-
+"""
 @pytest.mark.slow
 def test_load_wrong_conformer():
     with pytest.raises(Exception):
-        test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
-        test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2'))
+        test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+        test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
 
-
+"""
 @pytest.mark.slow
 def test_load_wrong_esp():
     with pytest.raises(Exception):

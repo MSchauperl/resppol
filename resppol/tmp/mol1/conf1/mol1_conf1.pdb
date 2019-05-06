@@ -1,0 +1,18 @@
+REMARK   1 CREATED WITH FORCEBALANCE 2019-05-01
+HETATM    1  C1  MOL A   1       0.812  -0.539   0.494  1.00  0.00           C  
+HETATM    2  C2  MOL A   1       2.158  -0.050  -0.013  1.00  0.00           C  
+HETATM    3  H3  MOL A   1      -0.017  -0.008   0.009  1.00  0.00           H  
+HETATM    4  H4  MOL A   1       0.675  -1.611   0.299  1.00  0.00           H  
+HETATM    5  H5  MOL A   1       0.711  -0.387   1.576  1.00  0.00           H  
+HETATM    6  H6  MOL A   1       2.987  -0.581   0.472  1.00  0.00           H  
+HETATM    7  H7  MOL A   1       2.295   1.021   0.182  1.00  0.00           H  
+HETATM    8  H8  MOL A   1       2.259  -0.203  -1.095  1.00  0.00           H  
+TER       9      MOL A   1
+CONECT    1    2    3    4    5
+CONECT    2    1    6    7    8
+CONECT    3    1
+CONECT    4    1
+CONECT    5    1
+CONECT    6    2
+CONECT    7    2
+CONECT    8    2

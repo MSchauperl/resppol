@@ -1,0 +1,336 @@
+
+    -----------------------------------------------------------------------
+          Psi4: An Open-Source Ab Initio Electronic Structure Package
+                               Psi4 1.3.1 release
+
+                         Git: Rev {HEAD} 2ce1c29 
+
+
+    R. M. Parrish, L. A. Burns, D. G. A. Smith, A. C. Simmonett,
+    A. E. DePrince III, E. G. Hohenstein, U. Bozkaya, A. Yu. Sokolov,
+    R. Di Remigio, R. M. Richard, J. F. Gonthier, A. M. James,
+    H. R. McAlexander, A. Kumar, M. Saitow, X. Wang, B. P. Pritchard,
+    P. Verma, H. F. Schaefer III, K. Patkowski, R. A. King, E. F. Valeev,
+    F. A. Evangelista, J. M. Turney, T. D. Crawford, and C. D. Sherrill,
+    J. Chem. Theory Comput. 13(7) pp 3185--3197 (2017).
+    (doi: 10.1021/acs.jctc.7b00174)
+
+
+                         Additional Contributions by
+    P. Kraus, H. Kruse, M. H. Lechner, M. C. Schieber, R. A. Shaw,
+    A. Alenaizan, R. Galvelis, Z. L. Glick, S. Lehtola, and J. P. Misiewicz
+
+    -----------------------------------------------------------------------
+
+
+    Psi4 started on: Wednesday, 01 May 2019 02:20PM
+
+    Process ID: 5566
+    Host:       nighthawk
+    PSIDATADIR: /home/mschauperl/.conda/envs/fb/share/psi4
+    Memory:     500.0 MiB
+    Threads:    1
+    
+  ==> Input File <==
+
+--------------------------------------------------------------------------
+memory 12 gb
+molecule meoh {
+noreorient
+nocom
+0 1
+C     0.8120    -0.5390     0.4940
+C     2.1580    -0.0500    -0.0130
+H    -0.0170    -0.0080     0.0090
+H     0.6750    -1.6110     0.2990
+H     0.7110    -0.3870     1.5760
+H     2.9870    -0.5810     0.4720
+H     2.2950     1.0210     0.1820
+H     2.2590    -0.2030    -1.0950
+}
+set {
+basis aug-cc-pV(D+d)Z
+}
+E,wfn = prop('PW6B95' , properties = ['GRID_ESP', 'GRID_FIELD'], return_wfn=True)
+--------------------------------------------------------------------------
+
+  Memory set to  11.176 GiB by Python driver.
+
+*** tstart() called on nighthawk
+*** at Wed May  1 14:20:32 2019
+
+   => Loading Basis Set <=
+
+    Name: AUG-CC-PV(D+D)Z
+    Role: ORBITAL
+    Keyword: BASIS
+    atoms 1-2 entry C          line   198 file /home/mschauperl/.conda/envs/fb/share/psi4/basis/aug-cc-pv_dpd_z.gbs 
+    atoms 3-8 entry H          line    56 file /home/mschauperl/.conda/envs/fb/share/psi4/basis/aug-cc-pv_dpd_z.gbs 
+
+
+         ---------------------------------------------------------
+                                   SCF
+               by Justin Turney, Rob Parrish, Andy Simmonett
+                          and Daniel G. A. Smith
+                              RKS Reference
+                        1 Threads,  11444 MiB Core
+         ---------------------------------------------------------
+
+  ==> Geometry <==
+
+    Molecular point group: c1
+    Full point group: C1
+
+    Geometry (in Angstrom), charge = 0, multiplicity = 1:
+
+       Center              X                  Y                   Z               Mass       
+    ------------   -----------------  -----------------  -----------------  -----------------
+         C            0.812000000000    -0.539000000000     0.494000000000    12.000000000000
+         C            2.158000000000    -0.050000000000    -0.013000000000    12.000000000000
+         H           -0.017000000000    -0.008000000000     0.009000000000     1.007825032230
+         H            0.675000000000    -1.611000000000     0.299000000000     1.007825032230
+         H            0.711000000000    -0.387000000000     1.576000000000     1.007825032230
+         H            2.987000000000    -0.581000000000     0.472000000000     1.007825032230
+         H            2.295000000000     1.021000000000     0.182000000000     1.007825032230
+         H            2.259000000000    -0.203000000000    -1.095000000000     1.007825032230
+
+  Running in c1 symmetry.
+
+  Rotational constants: A =      1.24588  B =      0.19040  C =      0.17604 [cm^-1]
+  Rotational constants: A =  37350.48047  B =   5708.09435  C =   5277.63648 [MHz]
+  Nuclear repulsion =   42.214822459280057
+
+  Charge       = 0
+  Multiplicity = 1
+  Electrons    = 18
+  Nalpha       = 9
+  Nbeta        = 9
+
+  ==> Algorithm <==
+
+  SCF Algorithm Type is DF.
+  DIIS enabled.
+  MOM disabled.
+  Fractional occupation disabled.
+  Guess Type is SAD.
+  Energy threshold   = 1.00e-06
+  Density threshold  = 1.00e-06
+  Integral threshold = 0.00e+00
+
+  ==> Primary Basis <==
+
+  Basis Set: AUG-CC-PV(D+D)Z
+    Blend: AUG-CC-PV(D+D)Z
+    Number of shells: 48
+    Number of basis function: 100
+    Number of Cartesian functions: 104
+    Spherical Harmonics?: true
+    Max angular momentum: 2
+
+  ==> DFT Potential <==
+
+   => Composite Functional: PW6B95 <= 
+
+    PW6B95 Hybrid Meta-GGA XC Functional
+
+    Y. Zhao and D. Truhlar, J. Phys. Chem. A., 109,5656-5667, 2005
+
+
+    Deriv               =              1
+    GGA                 =           TRUE
+    Meta                =           TRUE
+
+    Exchange Hybrid     =           TRUE
+    MP2 Hybrid          =          FALSE
+
+   => Exchange Functionals <=
+
+    0.7200    XC_GGA_X_PW91
+
+   => Exact (HF) Exchange <=
+
+    0.2800               HF 
+
+   => Correlation Functionals <=
+
+    1.0000   XC_MGGA_C_BC95
+
+   => Molecular Quadrature <=
+
+    Radial Scheme          =       TREUTLER
+    Pruning Scheme         =           FLAT
+    Nuclear Scheme         =       TREUTLER
+
+    BS radius alpha        =              1
+    Pruning alpha          =              1
+    Radial Points          =             75
+    Spherical Points       =            302
+    Total Points           =         181200
+    Total Blocks           =           1407
+    Max Points             =            256
+    Max Functions          =            100
+
+   => Loading Basis Set <=
+
+    Name: (AUG-CC-PV(D+D)Z AUX)
+    Role: JKFIT
+    Keyword: DF_BASIS_SCF
+    atoms 1-2 entry C          line   154 file /home/mschauperl/.conda/envs/fb/share/psi4/basis/aug-cc-pvdz-jkfit.gbs 
+    atoms 3-8 entry H          line    70 file /home/mschauperl/.conda/envs/fb/share/psi4/basis/aug-cc-pvdz-jkfit.gbs 
+
+  ==> Pre-Iterations <==
+
+   -------------------------------------------------------
+    Irrep   Nso     Nmo     Nalpha   Nbeta   Ndocc  Nsocc
+   -------------------------------------------------------
+     A        100     100       0       0       0       0
+   -------------------------------------------------------
+    Total     100     100       9       9       9       0
+   -------------------------------------------------------
+
+  ==> Integral Setup <==
+
+  DFHelper Memory: AOs need 0.030 GiB; user supplied 7.098 GiB. Using in-core AOs.
+
+  ==> MemDFJK: Density-Fitted J/K Matrices <==
+
+    J tasked:                   Yes
+    K tasked:                   Yes
+    wK tasked:                   No
+    OpenMP threads:               1
+    Memory [MiB]:              7268
+    Algorithm:                 Core
+    Schwarz Cutoff:           1E-12
+    Mask sparsity (%):       0.0000
+    Fitting Condition:        1E-10
+
+   => Auxiliary Basis Set <=
+
+  Basis Set: (AUG-CC-PV(D+D)Z AUX)
+    Blend: AUG-CC-PVDZ-JKFIT
+    Number of shells: 128
+    Number of basis function: 364
+    Number of Cartesian functions: 412
+    Spherical Harmonics?: true
+    Max angular momentum: 3
+
+  Cached 100.0% of DFT collocation blocks in 1.284 [GiB].
+
+  Minimum eigenvalue in the overlap matrix is 1.8795657341E-04.
+  Using Symmetric Orthogonalization.
+
+  SCF Guess: Superposition of Atomic Densities via on-the-fly atomic UHF.
+
+  ==> Iterations <==
+
+                           Total Energy        Delta E     RMS |[F,P]|
+
+   @DF-RKS iter SAD:   -79.30502828007523   -7.93050e+01   0.00000e+00 
+   @DF-RKS iter   1:   -79.56376037750591   -2.58732e-01   8.20989e-03 DIIS
+   @DF-RKS iter   2:   -79.38885818955252    1.74902e-01   9.54856e-03 DIIS
+   @DF-RKS iter   3:   -79.92831659414713   -5.39458e-01   4.48362e-04 DIIS
+   @DF-RKS iter   4:   -79.92945528855265   -1.13869e-03   9.06283e-05 DIIS
+   @DF-RKS iter   5:   -79.92949870058807   -4.34120e-05   1.12957e-05 DIIS
+   @DF-RKS iter   6:   -79.92949946328540   -7.62697e-07   7.50455e-07 DIIS
+  Energy and wave function converged.
+
+
+  ==> Post-Iterations <==
+
+    Orbital Energies [Eh]
+    ---------------------
+
+    Doubly Occupied:                                                      
+
+       1A    -10.294628     2A    -10.294368     3A     -0.776929  
+       4A     -0.634408     5A     -0.449555     6A     -0.449524  
+       7A     -0.383690     8A     -0.354804     9A     -0.354788  
+
+    Virtual:                                                              
+
+      10A      0.000129    11A      0.021292    12A      0.028670  
+      13A      0.028681    14A      0.058858    15A      0.058864  
+      16A      0.076693    17A      0.095885    18A      0.095900  
+      19A      0.112866    20A      0.121369    21A      0.129427  
+      22A      0.129435    23A      0.149718    24A      0.182866  
+      25A      0.182891    26A      0.195287    27A      0.195314  
+      28A      0.257683    29A      0.281456    30A      0.281518  
+      31A      0.294946    32A      0.316990    33A      0.334875  
+      34A      0.334888    35A      0.353747    36A      0.383362  
+      37A      0.389683    38A      0.389693    39A      0.447701  
+      40A      0.447733    41A      0.455449    42A      0.474337  
+      43A      0.475143    44A      0.475168    45A      0.485009  
+      46A      0.517051    47A      0.517096    48A      0.541353  
+      49A      0.541417    50A      0.551225    51A      0.607822  
+      52A      0.631141    53A      0.631188    54A      0.643150  
+      55A      0.663250    56A      0.663295    57A      0.772348  
+      58A      0.772442    59A      0.817542    60A      0.817683  
+      61A      0.882572    62A      0.935251    63A      1.012002  
+      64A      1.012040    65A      1.065965    66A      1.135098  
+      67A      1.245570    68A      1.245679    69A      1.298618  
+      70A      1.298861    71A      1.553701    72A      1.553814  
+      73A      1.647436    74A      1.661663    75A      1.689849  
+      76A      1.706078    77A      1.706116    78A      1.783697  
+      79A      1.783835    80A      1.821314    81A      1.906030  
+      82A      1.906208    83A      1.941480    84A      1.969197  
+      85A      1.969517    86A      1.971171    87A      1.971281  
+      88A      2.177209    89A      2.196764    90A      2.331540  
+      91A      2.331878    92A      2.374828    93A      2.374971  
+      94A      2.518616    95A      2.546993    96A      2.617771  
+      97A      2.617923    98A      2.675878    99A      2.785655  
+     100A      2.786018  
+
+    Final Occupation by Irrep:
+              A 
+    DOCC [     9 ]
+
+  @DF-RKS Final Energy:   -79.92949946328540
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =             42.2148224592800574
+    One-Electron Energy =                -189.2245851624768989
+    Two-Electron Energy =                  76.7728203311638708
+    DFT Exchange-Correlation Energy =      -9.6925570912524428
+    Empirical Dispersion Energy =           0.0000000000000000
+    VV10 Nonlocal Energy =                  0.0000000000000000
+    Total Energy =                        -79.9294994632853957
+
+Computation Completed
+
+
+Properties will be evaluated at   0.000000,   0.000000,   0.000000 [a0]
+
+Properties computed using the PW6B95 density matrix
+
+  Nuclear Dipole Moment: [e a0]
+     X:    50.5124      Y:   -10.0212      Z:     8.1806
+
+  Electronic Dipole Moment: [e a0]
+     X:   -50.5122      Y:    10.0214      Z:    -8.1805
+
+  Dipole Moment: [e a0]
+     X:     0.0002      Y:     0.0002      Z:     0.0001     Total:     0.0003
+
+  Dipole Moment: [D]
+     X:     0.0004      Y:     0.0005      Z:     0.0003     Total:     0.0007
+
+
+ Field computed on the grid and written to grid_field.dat
+
+ Electrostatic potential computed on the grid and written to grid_esp.dat
+
+*** tstop() called on nighthawk at Wed May  1 14:20:44 2019
+Module time:
+	user time   =      11.76 seconds =       0.20 minutes
+	system time =       0.42 seconds =       0.01 minutes
+	total time  =         12 seconds =       0.20 minutes
+Total time:
+	user time   =      11.76 seconds =       0.20 minutes
+	system time =       0.42 seconds =       0.01 minutes
+	total time  =         12 seconds =       0.20 minutes
+
+    Psi4 stopped on: Wednesday, 01 May 2019 02:20PM
+    Psi4 wall time for execution: 0:00:12.22
+
+*** Psi4 exiting successfully. Buy a developer a beer!

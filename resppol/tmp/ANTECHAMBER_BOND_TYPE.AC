@@ -1,0 +1,25 @@
+CHARGE      0.00 ( 0 )
+Formula: H8 C3 O1 
+ATOM      1  C   LIG     1      -1.865  -0.152   0.001 -0.063200        c3
+ATOM      2  C1  LIG     1      -0.524   0.533  -0.001 -0.032600        c3
+ATOM      3  C2  LIG     1       0.603  -0.486  -0.001  0.044000        c3
+ATOM      4  O   LIG     1       1.823   0.240   0.001 -0.395000        oh
+ATOM      5  H   LIG     1      -1.982  -0.797  -0.903  0.023000        hc
+ATOM      6  H1  LIG     1      -1.980  -0.795   0.907  0.023000        hc
+ATOM      7  H2  LIG     1      -2.684   0.607   0.001  0.023000        hc
+ATOM      8  H3  LIG     1      -0.422   1.192   0.900  0.028500        hc
+ATOM      9  H4  LIG     1      -0.423   1.190  -0.904  0.028500        hc
+ATOM     10  H5  LIG     1       0.545  -1.139   0.911  0.055700        h1
+ATOM     11  H6  LIG     1       0.547  -1.137  -0.915  0.055700        h1
+ATOM     12  H7  LIG     1       2.531  -0.413   0.001  0.209400        ho
+BOND    1   11    3    1     H6   C2
+BOND    2    9    2    1     H4   C1
+BOND    3    5    1    1      H    C
+BOND    4    2    3    1     C1   C2
+BOND    5    2    1    1     C1    C
+BOND    6    2    8    1     C1   H3
+BOND    7    3    4    1     C2    O
+BOND    8    3   10    1     C2   H5
+BOND    9   12    4    1     H7    O
+BOND   10    7    1    1     H2    C
+BOND   11    1    6    1      C   H1

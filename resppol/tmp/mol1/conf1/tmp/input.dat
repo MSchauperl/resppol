@@ -1,0 +1,18 @@
+memory 12 gb
+molecule meoh {
+noreorient
+nocom
+0 1
+C     0.8120    -0.5390     0.4940
+C     2.1580    -0.0500    -0.0130
+H    -0.0170    -0.0080     0.0090
+H     0.6750    -1.6110     0.2990
+H     0.7110    -0.3870     1.5760
+H     2.9870    -0.5810     0.4720
+H     2.2950     1.0210     0.1820
+H     2.2590    -0.2030    -1.0950
+}
+set {
+basis aug-cc-pV(D+d)Z
+}
+E,wfn = prop('PW6B95' , properties = ['GRID_ESP', 'GRID_FIELD'], return_wfn=True)

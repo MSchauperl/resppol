@@ -14,12 +14,12 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 ######################################################################################
 
 
-"""
-@pytest.mark.slow
+
+#@pytest.mark.slow
 def test_charge_fitting_1_conformer():
-    test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
-    test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
-    test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/molecule0.gesp'))
+    test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+    test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+    test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.gesp'))
     test.optimize_charges()
     charges = [-0.48886482, 0.24846824, 0.2413244, -0.70349397, 0.11170063, 0.11170063, 0.11170063,
                -0.00506223, -0.00506223, -0.02161905, -0.02161905, 0.42082684]
@@ -27,7 +27,7 @@ def test_charge_fitting_1_conformer():
         assert test.q[i].magnitude == pytest.approx(charges[i], 0.001)
     assert test.q[:len(test._atoms)].units == 'elementary_charge'
 
-
+"""
 @pytest.mark.slow
 def test_charge_fitting_2_conformers():
     test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
@@ -54,6 +54,6 @@ def test_load_wrong_conformer():
 @pytest.mark.slow
 def test_load_wrong_esp():
     with pytest.raises(Exception):
-        test = rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
+        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/molecule0.gesp'))

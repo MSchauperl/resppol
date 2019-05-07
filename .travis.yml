@@ -23,7 +23,7 @@ matrix:
 
 env:
   global:
-- OE_LICENSE="$HOME/oe_license.txt"
+  - OE_LICENSE="$HOME/oe_license.txt"
 
 before_install:
     # Additional info about the build

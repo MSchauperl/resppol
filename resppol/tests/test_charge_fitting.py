@@ -52,7 +52,7 @@ def test_load_wrong_conformer():
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 def test_load_wrong_esp():
     with pytest.raises(Exception):
         test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))

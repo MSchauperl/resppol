@@ -466,6 +466,8 @@ class ESPGRID:
             if 'gesp' in ele:
                 self.gridtype = 'gesp'
             if 'espf' in ele:
+                self.gridtype = 'respyte'
+            if 'grid.dat' in ele:
                 self.gridtype = 'psi4'
 
     def set_ext_e_field(self, vector):
@@ -493,7 +495,7 @@ class ESPGRID:
 
             self.positions = Q_(np.array(grid)[:, 1:4], 'bohr')
             self.esp_values = Q_(np.array(grid)[:, 0], 'elementary_charge / bohr')
-        elif self.gridtype == 'psi4':
+        elif self.gridtype == 'respyte':
             f = open(args[0], 'r')
             lines = f.readlines()
             f.close
@@ -503,6 +505,15 @@ class ESPGRID:
                 grid[i] = [float(ele) for ele in lines[2 * i].split()]
             self.positions = Q_(np.array(grid)[:, 0:3], 'angstrom')
             self.esp_values = Q_(np.array(grid)[:, 3], 'elementary_charge / bohr')
+        elif self.gridtype == 'psi4':
+            for ele in args:
+                if "grid.dat" in ele:
+                    gridfile=ele
+                elif 'esp.dat' in ele:
+                    espfile=ele
+            np.loadtxt(espfile)
+            self.positions = Q_(np.loadtxt(gridfile), 'angstrom')
+            self.esp_values = Q_(np.loadtxt(espfile), 'elementary_charge / bohr')
 
 
 # =============================================================================================
@@ -560,11 +571,33 @@ if __name__ == '__main__':
     print(test.q[:len(test._atoms)])
     print('FINISH')
 
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/mol1/conf1/mol1_conf1.mol2')
+
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = Molecule(datei)
     test.add_conformer_from_mol2(datei)
-    espfile = '/home/michael/resppol/resppol/tmp/mol1/conf1/mol1_conf1.espf'
+    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/molecule0.gesp'
     test.conformers[0].add_baseESP(espfile)
+    test.optimize_charges()
+    print(test.q[:len(test._atoms)])
+    print('FINISH')
+
+
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
+    test = Molecule(datei)
+    test.add_conformer_from_mol2(datei)
+    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid.espf'
+    test.conformers[0].add_baseESP(espfile)
+    test.optimize_charges()
+    print(test.q[:len(test._atoms)])
+    print('FINISH')
+
+
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
+    test = Molecule(datei)
+    test.add_conformer_from_mol2(datei)
+    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid_esp.dat'
+    gridfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid.dat'
+    test.conformers[0].add_baseESP(espfile,gridfile)
     test.optimize_charges()
     print(test.q[:len(test._atoms)])
     print('FINISH')

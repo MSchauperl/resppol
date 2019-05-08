@@ -170,7 +170,7 @@ class Molecule:
         self.offtop = openff.Topology.from_molecules([self.offmol])
 
         # Label the atoms and bonds using a offxml file
-        forcefield = ForceField(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/BCCPOL.offxml'))
+        forcefield = ForceField(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/BCCPOL.offxml'))
 
         # Run the parameter labeling
         molecule_parameter_list = forcefield.label_molecules(self.offtop)

@@ -1,13 +1,18 @@
+
 import pytest
 
 
 def pytest_addoption(parser):
-    """Add the pytest command line option --runslow and --failwip.
-    If --runslow is not given, tests marked with pytest.mark.slow are
-    skipped.
-    If --failwip is not give, tests marked with pytest.mark.wip are
-    xfailed.
-    """
     parser.addoption(
         "--runslow", action="store_true", default=False, help="run slow tests"
     )
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--runslow"):
+        # --runslow given in cli: do not skip slow tests
+        return
+    skip_slow = pytest.mark.skip(reason="need --runslow option to run")
+    for item in items:
+        if "slow" in item.keywords:
+            item.add_marker(skip_slow)

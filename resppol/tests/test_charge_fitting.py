@@ -5,6 +5,7 @@ Test of the charge fitting process
 import pytest
 import resppol
 from openeye import oechem
+import resppol.rpol
 import os
 
 ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..')
@@ -15,7 +16,7 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 ######################################################################################
 
 
-'''
+
 @pytest.mark.slow
 def test_charge_fitting_1_conformer():
     test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
@@ -29,7 +30,7 @@ def test_charge_fitting_1_conformer():
     assert test.q[:len(test._atoms)].units == 'elementary_charge'
 
 
-@pytest.mark.slow
+
 def test_charge_fitting_1_conformer_resppol():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = resppol.rpol.Molecule(datei)
@@ -74,7 +75,7 @@ def test_charge_fitting_2_conformers():
         assert test.q[i].magnitude == pytest.approx(charges[i], 0.001)
     assert test.q[:len(test._atoms)].units == 'elementary_charge'
 
-'''
+
 #@pytest.mark.slow
 def test_load_wrong_conformer():
     with pytest.raises(Exception):

@@ -16,6 +16,45 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 ######################################################################################
 
 
+@pytest.mark.slow
+def test_trainingset_1_molecule():
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
+    test = resppol.rpol.TrainingSet()
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/molecule0.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    test.optimize_charges()
+    charges = [-0.48886482, 0.24846824, 0.2413244, -0.70349397, 0.11170063, 0.11170063, 0.11170063,
+               -0.00506223, -0.00506223, -0.02161905, -0.02161905, 0.42082684]
+    for i in range(len(charges)):
+        assert test.q[i].magnitude == pytest.approx(charges[i], 0.001)
+    assert test.q.units == 'elementary_charge'
+
+
+@pytest.mark.slow
+def test_trainingset_2_moleculse():
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
+    test = resppol.rpol.TrainingSet()
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/molecule0.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
+    test.add_molecule(datei)
+    test.molecules[1].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/molecule0.gesp')
+    test.molecules[1].conformers[0].add_baseESP(espfile)
+    test.optimize_charges()
+    charges = [[-0.48886482, 0.24846824, 0.2413244, -0.70349397, 0.11170063, 0.11170063, 0.11170063,
+               -0.00506223, -0.00506223, -0.02161905, -0.02161905, 0.42082684],
+                [-0.13179147, -0.13859702, -0.13859702, -0.23563659, -0.23563659,  0.31656558, -0.46873091,
+                 0.12300703,  0.1317211,   0.1317211,   0.1603538,   0.1603538,  0.3252672 ]]
+    for j, molecule in enumerate(test.molecules):
+        for i in range(len(charges)):
+            assert molecule.q[i].magnitude == pytest.approx(charges[j][i], 0.001)
+        assert test.q[j].units == 'elementary_charge'
+
 
 def test_charge_fitting_1_conformer():
     test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
@@ -35,7 +74,7 @@ def test_charge_fitting_1_conformer_resppol():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = resppol.rpol.Molecule(datei)
     test.add_conformer_from_mol2(datei)
-    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid.espf'
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/grid.espf')
     test.conformers[0].add_baseESP(espfile)
     test.optimize_charges()
     charges = [-4.31454353e-01,2.01444159e-01,2.99586459e-01,-7.54034555e-01,9.84041761e-02,9.84041761e-02,
@@ -49,8 +88,8 @@ def test_charge_fitting_1_conformer_psi4():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = resppol.rpol.Molecule(datei)
     test.add_conformer_from_mol2(datei)
-    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid_esp.dat'
-    gridfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid.dat'
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/grid_esp.dat')
+    gridfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/grid.dat')
     test.conformers[0].add_baseESP(espfile,gridfile)
     test.optimize_charges()
     charges = [-4.31454353e-01,2.01444159e-01,2.99586459e-01,-7.54034555e-01,9.84041761e-02,9.84041761e-02,

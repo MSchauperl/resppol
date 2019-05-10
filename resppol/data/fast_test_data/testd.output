@@ -1,0 +1,11 @@
+2018-11-21 17:19:02.467023
+/home/mis/kirkwood/PSCRIPTS/bccall2.py -ngesp test2.ngesp -nmol2 test1n.nmol -mode bcc -out testd.output -groups ../bond_rst_definitions.txt -chg zero_chg 
+0	4.0	1.9721522630525295e-31
+SUM	4.0	1.9721522630525295e-31
+Bond Charge Corrections:
+Polarizabilities:
+22.947512119455848	c
+0.0	h1
+0.0	n
+-0.0	o
+0.0	c2

@@ -97,9 +97,18 @@ def find_eq_atoms(mol1):
 # =============================================================================================
 
 class TrainingSet:
+    """
+    This file tells the program where it can find all the necessary input files.
 
-    def __init__(self, datei):
+    """
+
+    def __init__(self):
         self.molecules = list()
+        self.B = np.zeros(0)
+        self.A = np.zeros((0,0))
+        self.q = 0.0
+
+    def load_from_file(self):
         f = open(datei)
         lines = f.readlines()
         f.close()
@@ -109,16 +118,62 @@ class TrainingSet:
             self.add_molecule(Molecule(mol2file))
 
     def add_molecule(self, datei):
-        self.molecules.append(Molecule(datei))
+        self.number_of_lines_in_A = 0
+        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_A))
+        self.number_of_lines_in_A += self.molecules[-1]._lines_in_A
 
     def build_matrix_A(self):
+        """
+        Combines the matrixes of  esp objects in the diagonal
+
+        Lagrange Multipliers have to be applied afterwords. Otherwise the optimisations
+        are independent
+        This function is only used for RESP-Pol
+        """
         for molecule in self.molecules:
             molecule.build_matrix_A()
+            X12 = np.zeros((len(self.A), len(molecule.A)))
+            self.A = np.concatenate(
+                (np.concatenate((self.A, X12), axis=1), np.concatenate((X12.transpose(), molecule.A), axis=1)), axis=0)
+
 
     def build_vector_B(self):
         for molecule in self.molecules:
             molecule.build_vector_B()
+            self.B = np.concatenate((self.B, molecule.B))
 
+    # def get_intramolecular_charge_rst()
+
+
+
+    def get_intramolecular_polarization_rst(self):
+
+        intramolecular_polarization_rst=[]
+        first_occurrence_of_parameter={}
+        for molecule in self.molecules:
+            first_occurrence_of_parameter_in_molecule = {}
+            for atom in molecule._natoms:
+                if atom._parameter_id not in first_occurrence_of_parameter.keys():
+                    first_occurrence_of_parameter[atom._parameter_id]=molecule._position_in_A+atom._id
+                elif atom._parameter_id not in first_occurrence_of_parameter_in_molecule.keys():
+                    intramolecular_polarization_rst.append([first_occurrence_of_parameter[atom._parameter_id],molecule._position_in_A+atom._id])
+
+
+
+
+
+
+    def optimize_charges(self):
+        self.build_matrix_A()
+        self.build_vector_B()
+        self.q = Q_(np.linalg.solve(self.A, self.B), 'elementary_charge')
+
+        # Update the charges of the molecules below
+        q_tmp = self.q
+        for molecule in self.molecules:
+            molecule.q=q_tmp[:len(molecule.A)]
+            q_tmp=q_tmp[len(molecule.A):]
+            molecule.update_q()
 
 # =============================================================================================
 # Molecule
@@ -137,12 +192,16 @@ class Molecule:
         :return:
         """
 
-    def __init__(self, datei):
+    def __init__(self, datei, position = 0):
 
         # Get Molecle name from filename
         self.B = 0.0
         self.A = 0.0
         self._name = datei.split('/')[-1].strip(".mol2")
+
+        # Postion of this molecule in optimization matrix A
+        self.position_in_A = position
+
 
         # Initialize OE Molecule
         self.oemol = oechem.OEMol()
@@ -188,13 +247,21 @@ class Molecule:
             atom_indices, parameter = properties
             self.add_bond(i, atom_indices, parameter.id)
 
+        self._nbonds = len(self._bonds)
+
         # Define all atomtypes for polarization
         for i, properties in enumerate(molecule_parameter_list[0]['vdW'].items()):
             atom_index, parameter = properties
             self.add_atom(i, atom_index, parameter.id)
 
+        self._natoms = len(self._atoms)
+
+
         # Initialize conformers
         self.conformers = list()
+
+        # Number of lines for matrix a
+        self._lines_in_A = self._natoms + len(self.chemical_eq_atoms) + 1
 
     def add_bond(self, index, atom_indices, parameter_id):
         atom_index1 = atom_indices[0]
@@ -241,6 +308,10 @@ class Molecule:
         self.build_matrix_A()
         self.build_vector_B()
         self.q = Q_(np.linalg.solve(self.A, self.B), 'elementary_charge')
+
+    def update_q(self):
+        for conformer in self.conformers:
+            conformer.q=self.q
 
 
 # =============================================================================================
@@ -368,7 +439,7 @@ class Conformer:
                 self.B[self.natoms + 1 + k] = 0.0
 
     def optimize_charges(self):
-        self.qd = np.linalg.solve(self.A, self.B)
+        self.q = np.linalg.solve(self.A, self.B)
 
     def build_matrix_Abcc(self):
         self.get_distances()
@@ -557,60 +628,20 @@ class BCCPolESP(ESPGRID):
 
 
 if __name__ == '__main__':
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = Molecule(datei)
-    test.add_conformer_from_mol2(datei)
 
-    datei = '/home/michael/resppol/resppol/tmp/butanol/conf1/mp2_1.mol2'
-    test.add_conformer_from_mol2(datei)
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
+    test = TrainingSet()
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = '/home/michael/resppol/resppol/tmp/phenol/conf0/molecule0.gesp'
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
+    test.add_molecule(datei)
+    test.molecules[1].add_conformer_from_mol2(datei)
     espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/molecule0.gesp'
-    test.conformers[0].add_baseESP(espfile, )
-    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf1/molecule1.gesp'
-    test.conformers[1].add_baseESP(espfile, )
+    test.molecules[1].conformers[0].add_baseESP(espfile)
     test.optimize_charges()
-    print(test.q[:len(test._atoms)])
+    for molecule in test.molecules:
+        print(molecule.q)
     print('FINISH')
 
-
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = Molecule(datei)
-    test.add_conformer_from_mol2(datei)
-    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/molecule0.gesp'
-    test.conformers[0].add_baseESP(espfile)
-    test.optimize_charges()
-    print(test.q[:len(test._atoms)])
-    print('FINISH')
-
-
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = Molecule(datei)
-    test.add_conformer_from_mol2(datei)
-    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid.espf'
-    test.conformers[0].add_baseESP(espfile)
-    test.optimize_charges()
-    print(test.q[:len(test._atoms)])
-    print('FINISH')
-
-
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = Molecule(datei)
-    test.add_conformer_from_mol2(datei)
-    espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid_esp.dat'
-    gridfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/grid.dat'
-    test.conformers[0].add_baseESP(espfile,gridfile)
-    test.optimize_charges()
-    print(test.q[:len(test._atoms)])
-    print('FINISH')
-
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/mol2/conf1/mol2_conf1.mol2')
-    test = Molecule(datei)
-    test.add_conformer_from_mol2(datei)
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/mol2/conf2/mol2_conf2.mol2')
-    test.add_conformer_from_mol2(datei)
-    espfile = '/home/michael/resppol/resppol/tmp/mol2/conf1/mol2_conf1.espf'
-    test.conformers[0].add_baseESP(espfile)
-    espfile = '/home/michael/resppol/resppol/tmp/mol2/conf2/mol2_conf2.espf'
-    test.conformers[1].add_baseESP(espfile)
-    test.optimize_charges()
-    print(test.q[:len(test._atoms)])
-    print('FINISH')

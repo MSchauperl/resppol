@@ -1,0 +1,11 @@
+@<TRIPOS>MOLECULE
+Single Point
+  2 1 0 0 0
+SMALL
+GASTEIGER
+
+@<TRIPOS>ATOM
+      1 C          -0.0000    1.8709   -1.8709 c       1  LIG1       -0.0596
+      2 O           0.0000   -1.8709    1.8709 o       1  LIG1        0.0596
+@<TRIPOS>BOND
+     1     1     2   1

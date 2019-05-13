@@ -87,7 +87,7 @@ class molecule():
 
             # Read in the bond information of the mol2 file
             elif '@<TRIPOS>BOND' in lines[i]:
-                self.bonds = [[0,0,0.0] for j in range(self.nbonds)]
+                self.bonds = [[0, 0, 0.0] for j in range(self.nbonds)]
                 for j in range(self.nbonds):
                     self.bonds[j][0] = int(lines[i + 1 + j].split()[1]) - 1
                     self.bonds[j][1] = int(lines[i + 1 + j].split()[2]) - 1
@@ -264,8 +264,8 @@ class esp():
     res_esp_counter = 0  # how many residuel esps already wrote to file
     test_counter = 0  # if option test is used
 
-
-    def __init__(self, datei, mol2, mode='q', eqatoms=None, eqatoms2=None, ext=None, eqdipoles=None, SCF=False, wrst1='', hrst1='',
+    def __init__(self, datei, mol2, mode='q', eqatoms=None, eqatoms2=None, ext=None, eqdipoles=None, SCF=False,
+                 wrst1='', hrst1='',
                  thole=False, dipscale='0.01'):
         """
         Creates an instance on the basis of an gaussian ESP file. and sets parameters
@@ -432,8 +432,7 @@ class esp():
         self.bound13 = np.zeros((self.natoms, self.natoms))
         self.bound14 = np.zeros((self.natoms, self.natoms))
 
-
-    def scaling(self, bonds, scaleparameters=None,scf_scaleparameters=None):
+    def scaling(self, bonds, scaleparameters=None, scf_scaleparameters=None):
         """
         Takes the bond information from a molecule instances and converts it to an scaling matrix.
 
@@ -451,9 +450,7 @@ class esp():
 
         """
         if scaleparameters is None:
-            scaleparameters=[0.0,0.0,0.8333333333]
-
-
+            scaleparameters = [0.0, 0.0, 0.8333333333]
 
         # Building connection matrix
         for k in range(len(bonds)):
@@ -487,35 +484,37 @@ class esp():
 
         # Fill scaling matrix with values
         for i in range(len(b12)):
-            self.scale[b12[i][0]][b12[i][1]] = scaleparameters[0]  # Value for 1-2 interaction 0 means interactions are neglected
+            self.scale[b12[i][0]][b12[i][1]] = scaleparameters[
+                0]  # Value for 1-2 interaction 0 means interactions are neglected
         for i in range(len(b13)):
-            self.scale[b13[i][0]][b13[i][1]] = scaleparameters[1]  # Value for 1-3 interaction 0 means interactions are neglected
+            self.scale[b13[i][0]][b13[i][1]] = scaleparameters[
+                1]  # Value for 1-3 interaction 0 means interactions are neglected
         for i in range(len(b14)):
             self.scale[b14[i][0]][b14[i][1]] = scaleparameters[2]  # Value for the 1-4 scaling
 
         # Different Scaling parameter for SCF
-        if scf_scaleparameters !=None:
+        if scf_scaleparameters != None:
             self.scale_scf = np.ones((self.natoms, self.natoms))
             for i in range(len(b12)):
-                self.scale_scf[b12[i][0]][b12[i][1]] = scf_scaleparameters[0]  # Value for 1-2 interaction 0 means interactions are neglected
+                self.scale_scf[b12[i][0]][b12[i][1]] = scf_scaleparameters[
+                    0]  # Value for 1-2 interaction 0 means interactions are neglected
             for i in range(len(b13)):
-                self.scale_scf[b13[i][0]][b13[i][1]] = scf_scaleparameters[1]  # Value for 1-3 interaction 0 means interactions are neglected
+                self.scale_scf[b13[i][0]][b13[i][1]] = scf_scaleparameters[
+                    1]  # Value for 1-3 interaction 0 means interactions are neglected
             for i in range(len(b14)):
                 self.scale_scf[b14[i][0]][b14[i][1]] = scf_scaleparameters[2]  # Value for the 1-4 scaling
 
-
-
         if scaleparameters == 'onlyinter':
-            #self.scale = np.ones((self.natoms, self.natoms))
+            # self.scale = np.ones((self.natoms, self.natoms))
             # Building connection matrix
-            for k in range(1,len(bonds)):
+            for k in range(1, len(bonds)):
                 if np.all(self.bound12[:k].transpose()[k:] == 0):
-                    self.log('Multiple Molecules detected: No connection between atom {} and {}'.format(k,k+1))
+                    self.log('Multiple Molecules detected: No connection between atom {} and {}'.format(k, k + 1))
 
     def update_for_daq(self):
         self.eqatoms = []
         for i in range(self.natoms - 1):
-                self.eqatoms.append([i, -1])
+            self.eqatoms.append([i, -1])
         self.Alines = self.natoms + 1 + len(self.eqatoms)
         self.aniso_lines = 2 * self.natoms
         self.Dlines = self.ndipoles + self.aniso_lines + len(self.eqdipoles)
@@ -547,7 +546,6 @@ class esp():
             diatomic distance in x direction
 
         """
-
 
         # Distances between atoms and ESP points
         self.dist = np.zeros((self.natoms, self.npoints))
@@ -602,7 +600,6 @@ class esp():
         #    for j in range(len(self.crd3)):
         #        self.dist_d[i][j]=1./(self.atomcrd3[i]-self.crd3[j])
 
-
     def delete_dist(self):
         """Deletes the all calculated distances to free memory."""
         del self.dist
@@ -619,7 +616,6 @@ class esp():
         del self.adistb_x
         del self.adistb_y
         del self.adistb_z
-
 
     """
     def make_Abcc(self, mol2): #Old
@@ -656,6 +652,7 @@ class esp():
                         self.D[alpha][beta] += mol2.R[j][alpha] * mol2.R[k][beta] * np.multiply(
                             np.dot(self.dist_z[j], self.dist_z[k]), self.e_z[j] * self.e_z[k])
     """
+
     # Combines BCC and polarizabilities
     def make_Xn(self, mol2):
         """
@@ -670,7 +667,7 @@ class esp():
 
         # BCC part
         self.A = np.zeros((mol2.nbondtyps, mol2.nbondtyps))
-        if self.mode == 'alpha': # Do not optimize BCCs in that case
+        if self.mode == 'alpha':  # Do not optimize BCCs in that case
             for alpha in range(mol2.nbondtyps):
                 self.A[alpha][alpha] = 1
         else:
@@ -682,7 +679,7 @@ class esp():
                                                                                                self.dist[k])
         # Polarizabilities part
         self.D = np.zeros((mol2.lenpoltypes, mol2.lenpoltypes))
-        if self.mode != 'bcconly': #Mode is not optimizing polarizabilies
+        if self.mode != 'bcconly':  # Mode is not optimizing polarizabilies
             for j in range(self.natoms):
                 for k in range(self.natoms):
                     for alpha in range(mol2.lenpoltypes):
@@ -746,7 +743,6 @@ class esp():
         # Combine all matrices
         self.X = np.concatenate((np.concatenate((self.A, self.B), axis=1), np.concatenate((self.C, self.D), axis=1)),
                                 axis=0)
-
 
     def make_X(self):
         """
@@ -895,7 +891,6 @@ class esp():
                 self.A[self.natoms + 1 + j][self.eqatoms[j][0]] = 1
                 self.A[self.eqatoms[j][0]][self.natoms + 1 + j] = 1
 
-
     # X*alpha=Yn
     def make_Yn(self, mol2):
         """
@@ -905,7 +900,7 @@ class esp():
 
         :return:
         """
-        #Vector belonging to the BCCs
+        # Vector belonging to the BCCs
         self.Y1 = np.zeros(mol2.nbondtyps)
         if self.mode != 'alpha':
             for beta in range(mol2.nbondtyps):
@@ -914,7 +909,7 @@ class esp():
         else:
             self.Y1 = self.qbond
 
-        #Vector belonging to the polarizabilities
+        # Vector belonging to the polarizabilities
         self.Y2 = np.zeros(mol2.lenpoltypes)
         if self.mode != 'bcconly':
             for beta in range(mol2.lenpoltypes):
@@ -925,7 +920,6 @@ class esp():
         else:
             self.Y2 = self.pol
         self.Y = np.concatenate((self.Y1, self.Y2))
-
 
     def get_e_int(self, ):
         """
@@ -940,7 +934,7 @@ class esp():
 
         # Load permanent charges for BCC method
         # for alpha qfix is set to 0.0 in the wrapper program
-        if self.mode == 'bcc' or self.mode == 'alpha' or self.mode == 'bcconly' or self.mode=='analysis'  or self.mode=='analysisalpha'  or self.mode=='alphabccfix' or self.mode=='d':
+        if self.mode == 'bcc' or self.mode == 'alpha' or self.mode == 'bcconly' or self.mode == 'analysis' or self.mode == 'analysisalpha' or self.mode == 'alphabccfix' or self.mode == 'd':
             try:
                 self.qfix
             except:
@@ -967,8 +961,8 @@ class esp():
             self.e = np.concatenate((self.e_x, self.e_y, self.e_z))
 
             if self.SCF and self.step > 0:
-                if not hasattr(self, 'Bdip') or self.thole :
-                    if self.thole :
+                if not hasattr(self, 'Bdip') or self.thole:
+                    if self.thole:
                         # self.thole_param=1.368711/BOHR**2
                         self.thole_param = 0.390
                         self.dipole_tmp = np.where(self.dipole < 0.0, -self.dipole, self.dipole)
@@ -984,12 +978,12 @@ class esp():
                         self.thole_ft = np.ones((self.natoms, self.natoms))
                         self.thole_fe -= np.exp(np.multiply(self.thole_param, np.power(-self.thole_v, 3)))
                         self.thole_ft -= np.multiply(np.multiply(self.thole_param, np.power(self.thole_v, 3)) + 1.,
-                                                np.exp(np.multiply(self.thole_param, np.power(-self.thole_v, 3))))
+                                                     np.exp(np.multiply(self.thole_param, np.power(-self.thole_v, 3))))
                         # 1.5 was found in the OpenMM code. Not sure whuy it is there
 
                         # In original thole these lines should not be here
-                        #self.thole_ft = np.multiply(self.thole_ft, self.scale)
-                        #self.thole_fe = np.multiply(self.thole_fe, self.scale)
+                        # self.thole_ft = np.multiply(self.thole_ft, self.scale)
+                        # self.thole_fe = np.multiply(self.thole_fe, self.scale)
                         # Linear thole
                         # self.thole_fe=np.zeros((self.natoms,self.natoms))
                         # self.thole_fe=np.zeros((self.natoms,self.natoms))
@@ -1130,7 +1124,7 @@ class esp():
         for i in range(self.npoints):
             if self.mode == 'q':
                 self.q_pot[i] = np.dot(qd[:self.natoms], np.transpose(self.dist)[i])
-            if self.mode == 'qd' or self.mode == 'd' or self.mode == 'bcc' or self.mode == 'alpha' or self.mode == 'bcconly' or self.mode == 'analysis'or self.mode == 'analysisalpha' or self.mode=='alphabccfix':
+            if self.mode == 'qd' or self.mode == 'd' or self.mode == 'bcc' or self.mode == 'alpha' or self.mode == 'bcconly' or self.mode == 'analysis' or self.mode == 'analysisalpha' or self.mode == 'alphabccfix':
                 self.dipole = qd[self.Alines:]
                 # self.dipole[self.dipole<0.0]=0.0
                 try:
@@ -1287,8 +1281,8 @@ class esp():
             for j in range(self.natoms):
                 if self.mode == 'qd':
                     pot += self.qtest[j] * self.dist[j][i] + (
-                                self.dtest[j][0] * self.dist_x[j][i] + self.dtest[j][1] * self.dist_y[j][i] +
-                                self.dtest[j][2] * self.dist_z[j][i])
+                            self.dtest[j][0] * self.dist_x[j][i] + self.dtest[j][1] * self.dist_y[j][i] +
+                            self.dtest[j][2] * self.dist_z[j][i])
                 if self.mode == 'd':
                     pot += (self.dtest[j][0] * self.dist_x[j][i] + self.dtest[j][1] * self.dist_y[j][i] + self.dtest[j][
                         2] * self.dist_z[j][i])

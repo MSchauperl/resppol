@@ -98,6 +98,8 @@ bond_groups: Dict[Union[str, Any], Union[int, Any]] = {
     'oh': 17,
     'os': 18, }
 """
+
+
 def read_groups(group_file):
     '''
     Read in BCC and POL groups.
@@ -110,25 +112,27 @@ def read_groups(group_file):
     The groups define which atoms have the same polarizability and which bonds share the
     same bond charge correction.
     '''
-    f=open(group_file,'r')
-    lines=f.readlines()
+    f = open(group_file, 'r')
+    lines = f.readlines()
     f.close()
-    bcc_dict={}
-    pol_dict={}
-    for i,line in enumerate(lines):
+    bcc_dict = {}
+    pol_dict = {}
+    for i, line in enumerate(lines):
         if 'Polarisation groups' in line:
-            n_pol=int(lines[i].split()[-1])
+            n_pol = int(lines[i].split()[-1])
             for j in range(n_pol):
-                key=lines[i + 1 + j].split()[0].strip(':').strip("'")
-                value=int(lines[i + 1 + j].split()[1].strip(','))
-                pol_dict[key]=value
+                key = lines[i + 1 + j].split()[0].strip(':').strip("'")
+                value = int(lines[i + 1 + j].split()[1].strip(','))
+                pol_dict[key] = value
         elif 'BCC groups' in line:
-            n_bcc=int(lines[i].split()[-1])
+            n_bcc = int(lines[i].split()[-1])
             for j in range(n_bcc):
-                key=lines[i + 1 + j].split()[0].strip(':').strip("'")
-                value=int(lines[i + 1 + j].split()[1].strip(','))
-                bcc_dict[key]=value
+                key = lines[i + 1 + j].split()[0].strip(':').strip("'")
+                value = int(lines[i + 1 + j].split()[1].strip(','))
+                bcc_dict[key] = value
     return bcc_dict, pol_dict
+
+
 # returns list of input file names
 def read_nmol2(nmol2):
     """
@@ -183,7 +187,7 @@ def readngesp(txtfile):
     return (ngesp, eext, base)
 
 
-def loadalpha(datei,npol):
+def loadalpha(datei, npol):
     """
     Takes the output of an old  BCC-Pol calculation and reads in the values
     :param datei: string
@@ -212,10 +216,11 @@ def loadalpha(datei,npol):
                 if bondnames[o][0] == entry[1] and bondnames[o][1] == entry[2]:
                     bond[o] = entry[0]
         elif readout == 2:
-            num=pol_groups[entry[1]]
-            pol[num]=float(entry[0])
+            num = pol_groups[entry[1]]
+            pol[num] = float(entry[0])
     pol = np.array(pol)
     return pol
+
 
 def loadbcc(datei):
     f = open(datei, 'r')
@@ -237,12 +242,12 @@ def loadbcc(datei):
     return bond
 
 
-
-def loadbccpol(datei,npol):
-    alpha=loadalpha(datei,npol)
-    bond=loadbcc(datei)
+def loadbccpol(datei, npol):
+    alpha = loadalpha(datei, npol)
+    bond = loadbcc(datei)
     bondpol = np.concatenate((bond, alpha), axis=0)
     return bondpol
+
 
 """Constants"""
 BOHR = float(0.52917722086)
@@ -254,7 +259,7 @@ timef = open('timing.dat', 'w')
 # Setting default values
 outputf = 'output.txt'
 outputlog = 'output.log'
-path1='./molecule'
+path1 = './molecule'
 ngesp = []
 nconf = []
 mode = 'bcc'
@@ -264,7 +269,7 @@ dipscale = 0.01
 wrst = ''
 thole = False
 zeromodel = False
-groups=None
+groups = None
 
 # Read in input
 for i in range(len(sys.argv)):
@@ -300,7 +305,7 @@ for i in range(len(sys.argv)):
     if sys.argv[i] == '-zeromodel':  # All charges qfix are set to zero
         zeromodel = True
     if sys.argv[i] == '-path':  # All charges qfix are set to zero
-        path1=sys.argv[i + 1].strip('/') + '/molecule'
+        path1 = sys.argv[i + 1].strip('/') + '/molecule'
 # Finish reading commmand line arguments
 
 log.basicConfig(filename=outputlog, level=10)
@@ -309,12 +314,11 @@ for i in range(len(sys.argv)):
     cmdline = cmdline + sys.argv[i].strip("\'") + ' '
 log.info(cmdline)
 
-if groups==None:
+if groups == None:
     log.error('Group Definition is missing')
     exit()
 else:
-    bond_groups,pol_groups=read_groups(groups)
-
+    bond_groups, pol_groups = read_groups(groups)
 
 # Debug
 log.debug('Pol Groups:')
@@ -331,7 +335,8 @@ if 'nmol2' in globals():
 
     # Check what kinds of bonds exists in the whole test set
     for i in range(len(mol1)):
-        mol1[i].bondtypes(bond_groups, bondtypes, bondnames)  # the group definiton; the already occuring bonds and the corresponding bond names
+        mol1[i].bondtypes(bond_groups, bondtypes,
+                          bondnames)  # the group definiton; the already occuring bonds and the corresponding bond names
         # print(bondtypes)
 
     # Build matrixes defining which bcc occurs in which atom and waht polarizability is used for which atom (R/T)
@@ -408,28 +413,31 @@ for k in range(len(nconf)):
                     natoms=esps[k][0].natoms)
             except:
                 q[k] = readmul(
-                    path1.replace('mschauperl','mis') + str(k + 1) + '/conf0/' + chg + '.log',
+                    path1.replace('mschauperl', 'mis') + str(k + 1) + '/conf0/' + chg + '.log',
                     natoms=esps[k][0].natoms)
         elif 'RESP' in chg:
-            chgfile=chg.split('=')[1]
+            chgfile = chg.split('=')[1]
             try:
-                q[k] = readqd('/home/mschauperl/kirkwood/charge_method/medium_set/charges/'+chgfile+'.txt_' + str(k))
+                q[k] = readqd(
+                    '/home/mschauperl/kirkwood/charge_method/medium_set/charges/' + chgfile + '.txt_' + str(k))
             except:
-                q[k] = readqd('/home/mis/kirkwood/charge_method/medium_set/charges/'+chgfile+'.txt_' + str(k))
+                q[k] = readqd('/home/mis/kirkwood/charge_method/medium_set/charges/' + chgfile + '.txt_' + str(k))
 
         elif 'zero_chg' in chg:
-            q[k]=[0.0 ,0.0]
+            q[k] = [0.0, 0.0]
         elif 'blaconf1' in chg:
             try:
-                q[k] = readqd('/home/mschauperl/kirkwood/charge_method/medium_set/charges/RESPconf1_co_opt_direct.txt_' + str(k))
+                q[k] = readqd(
+                    '/home/mschauperl/kirkwood/charge_method/medium_set/charges/RESPconf1_co_opt_direct.txt_' + str(k))
             except:
-                q[k] = readqd('/home/mis/kirkwood/charge_method/medium_set/charges/RESPconf1_co_opt_direct.txt_' + str(k))
+                q[k] = readqd(
+                    '/home/mis/kirkwood/charge_method/medium_set/charges/RESPconf1_co_opt_direct.txt_' + str(k))
         elif 'resp' in chg:
             try:
                 q[k] = readqd(
                     path1 + str(k + 1) + '/conf0/' + chg)
             except:
-                q[k] = readqd(path1.replace('mschauperl','mis')  + str(k + 1) + '/conf0/' + chg)
+                q[k] = readqd(path1.replace('mschauperl', 'mis') + str(k + 1) + '/conf0/' + chg)
 
         else:
             try:
@@ -438,18 +446,18 @@ for k in range(len(nconf)):
                     natoms=esps[k][0].natoms)
             except:
                 q[k] = readlog(
-                    path1.replace('mschauperl','mis') + str(k + 1) + '/conf0/' + chg + '.log',
+                    path1.replace('mschauperl', 'mis') + str(k + 1) + '/conf0/' + chg + '.log',
                     natoms=esps[k][0].natoms)
         if zeromodel:
             if esps[k][i].charge == 0:
                 q[k] = np.zeros(len(q[k]))
-            elif k==4:
+            elif k == 4:
                 q[k] = np.zeros(len(q[k]))
-                q[k][6]=-0.5
-                q[k][7]=-0.5
-            elif k==7:
+                q[k][6] = -0.5
+                q[k][7] = -0.5
+            elif k == 7:
                 q[k] = np.zeros(len(q[k]))
-                q[k][4]=1.0
+                q[k][4] = 1.0
 
             else:
                 q[k] = np.array([esps[k][i].charge / len(q[k]) for l in range(len(q[k]))])
@@ -466,42 +474,40 @@ for k in range(len(nconf)):
         # Include charges from the lower QM calculation (AM1 calculation)
         if mode == 'analysisalpha' or mode == 'alpha':
             esps[k][i].qfix = np.zeros(len(q[k]))
-            q[k]=np.zeros(len(q[k]))
-            esps[k][i].step=2
+            q[k] = np.zeros(len(q[k]))
+            esps[k][i].step = 2
         else:
             esps[k][i].qfix = q[k]
         esps[k][i].sub_esp_qd(q[k])  # Substract static esp from the atomic charges
         esps[k][i].delete_dist()
 
-#Finish reading input charges
+# Finish reading input charges
 
 # Timing stuff again
 time4 = time.time()
 duration = time4 - time3
 timef.write('Time for substracting fixed charge esp {}\n'.format(duration))
 
-
 # Read in starting values from an old run
 if 'bccpol' in globals():
     try:
         npoltypes = len(Counter(pol_groups.values()))
-        bcc_alp = loadbccpol(bccpol,npoltypes)
+        bcc_alp = loadbccpol(bccpol, npoltypes)
     except:
         print('Using the Zeromodel option')
-    if mode == 'alpha' or mode=='analysisalpha' :
+    if mode == 'alpha' or mode == 'analysisalpha':
         bcc_alp[:len(bondtypes)] = np.zeros(len(bondtypes))
     qbond = bcc_alp[:len(bondtypes)]
     pol = bcc_alp[len(bondtypes):]
 
-
 if 'startpol' in globals():
     npoltypes = len(Counter(pol_groups.values()))
-    pol=loadalpha(startpol,npoltypes)
+    pol = loadalpha(startpol, npoltypes)
     if 'startbcc' not in globals():
         qbond = np.zeros(len(bondtypes))
         bcc_alp = np.concatenate((qbond, pol), axis=0)
 if 'startbcc' in globals():
-    qbond=loadbcc(startbcc)
+    qbond = loadbcc(startbcc)
     if 'startpol' not in globals():
         pol = np.array([0.0 for i in range(len(Counter(pol_groups.values())))])
     bcc_alp = np.concatenate((qbond, pol), axis=0)
@@ -534,18 +540,18 @@ while True:
 
             log.debug(esps[k][i].qd)
             esps[k][i].distances()  # Calculated all distances
-            if mode=='alphabccfix':
+            if mode == 'alphabccfix':
                 esps[k][i].sub_esp_qd(esps[k][i].qd)
-                esps[k][i].qfix=esps[k][i].qfix+esps[k][i].qd[:esps[k][i].natoms]
-                esps[k][i].mode='alpha'
+                esps[k][i].qfix = esps[k][i].qfix + esps[k][i].qd[:esps[k][i].natoms]
+                esps[k][i].mode = 'alpha'
                 esps[k][i].qbond = np.zeros(len(bondtypes))
 
             esps[k][i].get_e_int()  # get initial electric field
 
-    if mode=='alphabccfix':
-        mode='alpha'
+    if mode == 'alphabccfix':
+        mode = 'alpha'
 
-    if mode == 'analysis' or mode=='analysisalpha' :
+    if mode == 'analysis' or mode == 'analysisalpha':
         """No optimization required. Just calculating the error with the given starting values """
         npoltypes = len(Counter(pol_groups.values()))  # Number of different polariztion groups
         break
@@ -628,8 +634,8 @@ while True:
 """
 This is all just output writing. 
 """
-summe = 0.0 # stores the initial error
-summe2 = 0.0 # store the residual error
+summe = 0.0  # stores the initial error
+summe2 = 0.0  # store the residual error
 outfile = open(outputf, 'w')
 outfile.write(str(datetime.datetime.now()) + '\n')
 outfile.write(str(cmdline) + '\n')
@@ -683,7 +689,7 @@ outfile.write('Polarizabilities:\n')
 for i in range(npoltypes):
     outfile.write(
         '{}\t{}\n'.format(bcc_alp[i + len(bondtypes)], list(pol_groups.keys())[list(pol_groups.values()).index(i)]))
-#if 'bccpol' in globals() and mode!='analysis':
+# if 'bccpol' in globals() and mode!='analysis':
 #    outfile.write('{}\t{}\n'.format(esps[7][0].pol[4],'n4'))
 outfile.close()
 

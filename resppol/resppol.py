@@ -6,6 +6,7 @@ Handles the primary functions
 """
 import resppol.efield as efield
 
+
 def canvas(with_attribution=True):
     """
     Placeholder function to show example docstring (NumPy format)
@@ -28,9 +29,11 @@ def canvas(with_attribution=True):
         quote += "\n\t- Adapted from Henry David Thoreau"
     return quote
 
-def add_func(a,b):
-    result=a+b
+
+def add_func(a, b):
+    result = a + b
     return result
+
 
 def main():
     print(efield.efield(2))

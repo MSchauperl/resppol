@@ -42,7 +42,7 @@ def read_groups_intra(group_file, n_mol):
                         l1 = int(entry[3])
                     except:
                         l1 = float(entry[3])
-                    if mode!='q':
+                    if mode != 'q':
                         rst_intra_pol[int(entry[0])].append([l0, l1])
         elif 'Intramolecular Charge' in line:
             n_intra_chg = int(line.split()[-1])
@@ -54,7 +54,7 @@ def read_groups_intra(group_file, n_mol):
                         l1 = int(entry[3])
                     except:
                         l1 = float(entry[3])
-                    if mode!='d':
+                    if mode != 'd':
                         rst_intra_chg[int(entry[0])].append([l0, l1])
     return rst_intra_pol, rst_intra_chg
 
@@ -92,9 +92,9 @@ def read_groups_inter(group_file, Alines, startlines):
                 if int(entry[0]) < len(Alines) and int(entry[2]) < len(Alines):
                     l0 = startlines[int(entry[0])] + int(entry[1])
                     l1 = startlines[int(entry[2])] + int(entry[3])
-                    if mode !='d':
+                    if mode != 'd':
                         rst_inter_pol.append([l0, l1])
-        if len(pol_dict)==5:
+        if len(pol_dict) == 5:
             pol_dict.append([int(7), int(4)])
     return rst_inter_pol, pol_dict
 
@@ -306,33 +306,30 @@ for k in range(len(ngesp)):
 
 esptot = copy.copy(esps[0][0])
 espmol = [None for i in range(len(nconf))]
-if modetmp=='daq':
+if modetmp == 'daq':
     log.info('Mode is daq')
     for k in range(len(nconf)):
         for i in range(nconf[k]):
-            esps[k][i].mode='q'
+            esps[k][i].mode = 'q'
             esps[k][i].make_X()
             esps[k][i].make_Y()
             # esps[i].opt_scf()
-        #Combine all conformers of one molecule
+        # Combine all conformers of one molecule
         espmol[k] = copy.deepcopy(esps[k][0])
         for j in range(nconf[k] - 1):
             espmol[k].X = np.add(espmol[k].X, esps[k][j + 1].X)
             espmol[k].Y = np.add(espmol[k].Y, esps[k][j + 1].Y)
-        qd=np.linalg.solve(espmol[k].X,espmol[k].Y)
+        qd = np.linalg.solve(espmol[k].X, espmol[k].Y)
         for i in range(nconf[k]):
-            esps[k][i].qin=np.zeros(len(qd))
+            esps[k][i].qin = np.zeros(len(qd))
         for i in range(nconf[k]):
             esps[k][i].sub_esp_qd(qd)
-            esps[k][i].mode='d'
-            esps[k][i].qfix=qd
-            esps[k][i].charge=0.0
+            esps[k][i].mode = 'd'
+            esps[k][i].qfix = qd
+            esps[k][i].charge = 0.0
             esps[k][i].update_for_daq()
-        espmol[k].mode='d'
-    esptot.mode='d'
-
-
-
+        espmol[k].mode = 'd'
+    esptot.mode = 'd'
 
 # Stores the start and the total number of lines for every sub-matrix (molecule)
 totallines = 0
@@ -343,9 +340,9 @@ for k in range(len(nconf)):
     startlines.append(totallines)
     allAlines.append(esps[k][0].Alines)
     totallines += esps[k][0].totallines
-    if modetmp !='daq':
+    if modetmp != 'daq':
         for i in range(nconf[k]):
-            esps[k][i].qfix=np.zeros(esps[k][0].natoms)
+            esps[k][i].qfix = np.zeros(esps[k][0].natoms)
 startlines.append(totallines)
 esptot = copy.copy(esps[0][0])
 esptot.qd = np.zeros(totallines)
@@ -353,13 +350,13 @@ espmol = [None for i in range(len(nconf))]
 
 im_rst, poltypes = read_groups_inter(groups, allAlines, startlines)
 
-if mode=='analysis':
-     for k in range(len(nconf)):
-         f=open('./charges/'+bccpol+'_'+str(k),'w')
+if mode == 'analysis':
+    for k in range(len(nconf)):
+        f = open('./charges/' + bccpol + '_' + str(k), 'w')
 
 counter = 0
 while True:
-    if mode=='analysis':
+    if mode == 'analysis':
         break
     qd_old = copy.copy(esptot.qd)
     for k in range(len(nconf)):
@@ -450,10 +447,9 @@ if not os.path.exists('./charges'):
 
 for k in range(len(nconf)):
     # Generating and Writing Output Summary
-    chargeout=open('./charges/'+outputf+'_'+str(k),'w')
+    chargeout = open('./charges/' + outputf + '_' + str(k), 'w')
     log.info('Molekule ' + str(k + 1))
     if esptot.mode == 'q' or esptot.mode == 'qd':
-
         log.info('Sum of molecular charges: {}'.format(esptot.Y[esps[k][0].natoms + startlines[k]]))
 
     log.info('Total time for charge fitting: {0:5.3f}s'.format(timeing))
@@ -463,11 +459,12 @@ for k in range(len(nconf)):
         chargeout.write('Atoms\t{}\n'.format(esps[k][0].natoms))
         log.info('Charges\tAtomtype  \tOptQ   \tAvgQ  \tSDevQ  \tMinQ  \tMaxQ')
         chargeout.write('Charges\tAtomtype  \tOptQ   \tAvgQ  \tSDevQ  \tMinQ  \tMaxQ\n')
-        #if modetmp =='daq':
+        # if modetmp =='daq':
         #    esptot.qd[startlines[k]:startlines[k]+esps[k][0].natoms]=esps[k][0].qfix[:esps[k][0].natoms]
         for i in range(esps[k][0].natoms):  # Achtung
             log.info('{0:6d}\t{1:>8s}\t{2:12.9f} '.format(i, esps[k][0].atoms[i], esptot.qd[i + startlines[k]]))
-            chargeout.write('{0:6d}\t{1:>8s}\t{2:12.9f} \n'.format(i, esps[k][0].atoms[i], esptot.qd[i + startlines[k]]))
+            chargeout.write(
+                '{0:6d}\t{1:>8s}\t{2:12.9f} \n'.format(i, esps[k][0].atoms[i], esptot.qd[i + startlines[k]]))
     if esptot.mode == 'd' or esptot.mode == 'qd':
         diptot = np.zeros(esps[k][0].natoms)
         for i in range(esps[k][0].natoms):
@@ -486,4 +483,3 @@ for k in range(len(nconf)):
     chargeout.close()
     log.info('Total time for fitting: {}'.format(timeing))
 output.close()
-

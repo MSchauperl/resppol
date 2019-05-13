@@ -96,17 +96,20 @@ def find_eq_atoms(mol1):
 # TrainingSet
 # =============================================================================================
 
-class TrainingSet:
+class TrainingSet():
     """
     This file tells the program where it can find all the necessary input files.
 
     """
 
-    def __init__(self):
+    def __init__(self, mode='q',scaleparameters = None, scf_scaleparameters=None):
         self.molecules = list()
         self.B = np.zeros(0)
         self.A = np.zeros((0, 0))
         self.q = 0.0
+        self.mode = mode
+        self.scf_scaleparameters = scf_scaleparameters
+        self.scaleparameters = scaleparameters
 
     def load_from_file(self):
         f = open(datei)
@@ -119,7 +122,7 @@ class TrainingSet:
 
     def add_molecule(self, datei):
         self.number_of_lines_in_A = 0
-        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_A))
+        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_A, trainingset = self ))
         self.number_of_lines_in_A += self.molecules[-1]._lines_in_A
 
     def build_matrix_A(self):
@@ -187,17 +190,26 @@ class Molecule:
         :return:
         """
 
-    def __init__(self, datei, position=0):
+    def __init__(self, datei, position=0, trainingset = None):
 
         # Get Molecle name from filename
         self.B = 0.0
         self.A = 0.0
         self._name = datei.split('/')[-1].strip(".mol2")
+        self._trainingset = trainingset
 
         # Postion of this molecule in optimization matrix A
         self.position_in_A = position
 
-        # Initialize OE Molecule
+        # Copy (scf) scaleparameters from the trainingset definition
+        if trainingset == None:
+            self.scf_scaleparameters = None
+            self.scaleparameters = None
+        else:
+            self.scf_scaleparameters= self._trainingset.scf_scaleparameters
+            self.scaleparameters= self._trainingset.scaleparameters
+
+            # Initialize OE Molecule
         self.oemol = oechem.OEMol()
 
         # Open Input File Stream
@@ -215,6 +227,9 @@ class Molecule:
         for atom in self.oemol.GetAtoms():
             if atom.GetAtomicNum() not in biological_elements:
                 log.warning("""I detect an atom with atomic number: {}
+                Are you sure you want to include such an atom in your dataset?
+                Maybe you are using a mol2 file with amber atomtypes""".format(atom.GetAtomicNum()))
+                raise Warning ("""I detect an atom with atomic number: {}
                 Are you sure you want to include such an atom in your dataset?
                 Maybe you are using a mol2 file with amber atomtypes""".format(atom.GetAtomicNum()))
 
@@ -253,7 +268,7 @@ class Molecule:
         # Initialize and fill scaling matrix
         self.scale = np.ones((self._natoms, self._natoms))
         self.scale_scf = np.ones((self._natoms, self._natoms))
-        self.scaling()
+        self.scaling(scf_scaleparameters = self.scf_scaleparameters )
 
         # Initialize conformers
         self.conformers = list()
@@ -391,6 +406,8 @@ class Molecule:
         # Different Scaling parameter for SCF
         if scf_scaleparameters != None:
             self.scale_scf = np.ones((self._natoms, self._natoms))
+            for i in range(self._natoms):
+                self.scale_scf[i][i] = 0.0
             for i in range(len(b12)):
                 self.scale_scf[b12[i][0]][b12[i][1]] = scf_scaleparameters[
                     0]  # Value for 1-2 interaction 0 means interactions are neglected
@@ -603,13 +620,13 @@ class Conformer:
 
     # only charge matrix with restraints
 
-    def optimize_charges(self):
+    def optimize_charges_alpha(self):
         self.q = np.linalg.solve(self.A, self.B)
 
     def build_matrix_Abcc(self):
         self.get_distances()
 
-    def get_e_int(self, ):
+    def get_electric_field(self, ):
         """
         Calculates the electric field at every atomic positions.
         :return:
@@ -629,12 +646,12 @@ class Conformer:
             exit()
         else:
             for j in range(self.natoms):
-                self.e_x[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.adist_x[j]) + np.dot(
-                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.adist_x[j]) + self.efield_ext[0]
-                self.e_y[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.adist_y[j]) + np.dot(
-                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.adist_y[j]) + self.efield_ext[1]
-                self.e_z[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.adist_z[j]) + np.dot(
-                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.adist_z[j]) + self.efield_ext[2]
+                self.e_x[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.diatomic_dist_x[j]) + np.dot(
+                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.diatomic_dist_x[j]) + self.efield_ext[0]
+                self.e_y[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.diatomic_dist_y[j]) + np.dot(
+                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.diatomic_dist_y[j]) + self.efield_ext[1]
+                self.e_z[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.diatomic_dist_z[j]) + np.dot(
+                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.diatomic_dist_z[j]) + self.efield_ext[2]
 
         self.e = np.concatenate((self.e_x, self.e_y, self.e_z))
 
@@ -910,11 +927,12 @@ class BCCPolESP(ESPGRID):
 if __name__ == '__main__':
 
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
-    test = TrainingSet()
+    test = TrainingSet(scf_scaleparameters=[0.0,0.0,0.5])
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     print(test.molecules[0].same_polarization_atoms)
     print(test.molecules[0].scale)
+    print(test.molecules[0].scale_scf)
     espfile = '/home/michael/resppol/resppol/tmp/phenol/conf0/molecule0.gesp'
     test.molecules[0].conformers[0].add_baseESP(espfile)
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')

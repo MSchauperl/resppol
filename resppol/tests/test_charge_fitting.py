@@ -78,12 +78,26 @@ def test_same_polarization_atoms():
 
 
 def test_scaling_matrix():
+    test = resppol.rpol.TrainingSet(scf_scaleparameters=[0.0,0.0,0.5])
+    test.add_molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
+    test.molecules[0].add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
+    testvar = test.molecules[0].scale[6]
+    testvar_scf = test.molecules[0].scale_scf[6]
+    scaleMatrix_scf = [1., 0.5, 0.5, 0., 0., 0., 0., 1., 1., 1., 0.5, 0.5, 0.]
+    scaleMatrix = [1., 0.83333333, 0.83333333, 0., 0., 0., 0., 1., 1., 1., 0.83333333, 0.83333333, 0.]
+    for i in range(len(testvar)):
+        assert testvar[i] == pytest.approx(scaleMatrix[i], 0.001)
+    for i in range(len(testvar_scf)):
+        assert testvar_scf[i] == pytest.approx(scaleMatrix_scf[i], 0.001)
+
+def test_scaling_matrix2():
     test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
     test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
     testvar = test.scale[6]
     scaleMatrix = [1., 0.83333333, 0.83333333, 0., 0., 0., 0., 1., 1., 1., 0.83333333, 0.83333333, 0.]
     for i in range(len(testvar)):
         assert testvar[i] == pytest.approx(scaleMatrix[i], 0.001)
+
 
 
 @pytest.mark.slow
@@ -146,3 +160,12 @@ def test_load_wrong_esp():
         test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/molecule0.gesp'))
+
+def test_load_wrong_mol2():
+    with pytest.raises(Exception):
+        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/no_molecule.mol2'))
+
+
+def test_warning_amberatomtype():
+    with pytest.raises(Warning):
+        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_amber_atomtype.mol2'))

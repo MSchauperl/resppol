@@ -45,6 +45,7 @@ def test_simple_rotatedx():
     test.molecules[0].conformers[0].add_baseESP(espfile)
     test.optimize_charges()
     test_charges = [4.3, -4.3]
+    test.molecules[0].conformers[0].delete_distances()
     for i, charge in enumerate(test.q[:2]):
         assert charge.magnitude == pytest.approx(test_charges[i], 0.01)
 
@@ -72,3 +73,5 @@ def test_simple_rotatedz():
     test_charges = [8.633, -8.633]
     for i, charge in enumerate(test.q[:2]):
         assert charge.magnitude == pytest.approx(test_charges[i], 0.01)
+
+

@@ -621,7 +621,7 @@ class Conformer:
     # only charge matrix with restraints
 
     def optimize_charges_alpha(self):
-        self.q = np.linalg.solve(self.A, self.B)
+        self.q = np.linalg.solve(self.X, self.Y)
 
     def build_matrix_Abcc(self):
         self.get_distances()
@@ -941,6 +941,7 @@ if __name__ == '__main__':
     espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/molecule0.gesp'
     test.molecules[1].conformers[0].add_baseESP(espfile)
     test.optimize_charges()
+    test.molecules[0].conformers[0].build_matrix_D()
     for molecule in test.molecules:
         print(molecule.q)
 

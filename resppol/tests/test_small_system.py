@@ -21,7 +21,7 @@ def test_simple_charges():
     test.molecules[0].conformers[0].add_baseESP(espfile)
     test.optimize_charges()
     for charge in test.molecules[0].q:
-        assert charge == pytest.approx(0.0, 0.001)
+        assert charge.magnitude == pytest.approx(0.0, 0.001)
 
 
 def test_simple_charges2():

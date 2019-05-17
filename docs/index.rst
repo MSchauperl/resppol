@@ -6,10 +6,27 @@
 Welcome to RESPPOL's documentation!
 =========================================================
 
-This is a helper module that computes charges!
+API Documentation
+=================
+
+
+The rpol module
+---------------
+
+
+Primary objects
+---------------
 
 .. automodule:: rpol
-    :members:
+
+The TrainingSet class
+---------------------
+
+.. autoclass:: TrainingSet
+   :members:
+
+
+Secondary object
 
 .. toctree::
    :maxdepth: 2

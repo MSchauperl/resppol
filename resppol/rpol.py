@@ -109,11 +109,21 @@ def return_sq_efield(matrix):
 
 class TrainingSet():
     """
-    This file tells the program where it can find all the necessary input files.
+    The training set class is the top level class of the resspol program.
 
+    It consist of multiple molecule instances and combines the optimization matrices and vectors across multiple molecules.
     """
 
     def __init__(self, mode='q', scaleparameters=None, scf_scaleparameters=None, SCF=False, thole=False):
+        """
+        Initilize the class and sets the following parameters:
+
+        :param mode:
+        :param scaleparameters:
+        :param scf_scaleparameters:
+        :param SCF:
+        :param thole:
+        """
         self.molecules = list()
         self.B = np.zeros(0)
         self.A = np.zeros((0, 0))
@@ -126,7 +136,13 @@ class TrainingSet():
         self._mode = mode
         self.step = 0
 
-    def load_from_file(self):
+    def load_from_file(self,txtfile):
+        """
+        Allows to build a TrainingSet instance from an text file.
+        File format as followed:
+
+        :return:
+        """
         f = open(datei)
         lines = f.readlines()
         f.close()
@@ -136,13 +152,18 @@ class TrainingSet():
             self.add_molecule(Molecule(mol2file))
 
     def add_molecule(self, datei):
+        """
+        Adds a molecule.
+        :param datei: Mol2 file of a molecule
+        :return:
+        """
         self.number_of_lines_in_X = 0
         self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self))
         self.number_of_lines_in_X += self.molecules[-1]._lines_in_X
 
     def build_matrix_A(self):
         """
-        Combines the matrixes of  esp objects in the diagonal
+        Combines the matrixes of esp objects in the diagonal
 
         Lagrange Multipliers have to be applied afterwords. Otherwise the optimisations
         are independent

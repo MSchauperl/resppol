@@ -8,7 +8,7 @@ Welcome to RESPPOL's documentation!
 
 This is a helper module that computes charges!
 
-.. automodule:: esp_qalpha
+.. automodule:: rpol
     :members:
 
 .. toctree::

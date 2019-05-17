@@ -1,4 +1,4 @@
-        #!/usr/bin/env python
+# !/usr/bin/env python
 
 # =============================================================================================
 # MODULE DOCSTRING
@@ -92,14 +92,16 @@ def find_eq_atoms(mol1):
 
     return sorted_eq_atoms
 
+
 def return_sq_efield(matrix):
     dim1 = len(matrix)
     dim2 = len(matrix[0])
-    sq_efield = np.zeros((dim1,dim1,dim2))
-    for i,vector1 in enumerate(matrix):
-        for j,vector2 in enumerate(matrix):
-            sq_efield[i][j] = vector1*vector2
+    sq_efield = np.zeros((dim1, dim1, dim2))
+    for i, vector1 in enumerate(matrix):
+        for j, vector2 in enumerate(matrix):
+            sq_efield[i][j] = vector1 * vector2
     return sq_efield
+
 
 # =============================================================================================
 # TrainingSet
@@ -356,10 +358,25 @@ class Molecule:
             conformer.build_vector_B()
             self.B += conformer.B
 
+    def build_matrix_X(self):
+        for conformer in self.conformers:
+            conformer.build_matrix_X()
+            self.X += conformer.X
+
+    def build_vector_Y(self):
+        for conformer in self.conformers:
+            conformer.build_vector_Y()
+            self.B += conformer.Y
+
     def optimize_charges(self):
         self.build_matrix_A()
         self.build_vector_B()
         self.q = Q_(np.linalg.solve(self.A, self.B), 'elementary_charge')
+
+    def optimize_charges(self):
+        self.build_matrix_X()
+        self.build_vector_Y()
+        self.q_alpha = Q_(np.linalg.solve(self.X, self.Y), 'elementary_charge')
 
     def update_q(self):
         for conformer in self.conformers:
@@ -498,7 +515,7 @@ class Conformer:
         self.q_alpha = self._molecule.q_alpha
 
         # Initiliaze Electric field vectors
-        self.e_field_at_atom = np.zeros((3,self.natoms))
+        self.e_field_at_atom = np.zeros((3, self.natoms))
 
     def get_grid_coord(self):
         self.grid_coord_angstrom = self.baseESP.positions.to('angstrom').magnitude
@@ -562,13 +579,15 @@ class Conformer:
 
         for j in range(self.natoms):
             for k in range(self.natoms):
-                self.D[k][j] = np.multiply(np.dot(self.dist_x[k], self.dist_x[j]), self.e_field_at_atom[0][k] * self.e_field_at_atom[0][j])
+                self.D[k][j] = np.multiply(np.dot(self.dist_x[k], self.dist_x[j]),
+                                           self.e_field_at_atom[0][k] * self.e_field_at_atom[0][j])
                 self.D[j + self.natoms][k] = self.D[k][j + self.natoms] = np.multiply(
                     np.dot(self.dist_x[k], self.dist_y[j]), self.e_field_at_atom[0][k] * self.e_field_at_atom[1][j])
                 self.D[j + 2 * self.natoms][k] = self.D[k][j + 2 * self.natoms] = np.multiply(
                     np.dot(self.dist_x[k], self.dist_z[j]), self.e_field_at_atom[0][k] * self.e_field_at_atom[2][j])
                 self.D[k + self.natoms][j + self.natoms] = np.multiply(np.dot(self.dist_y[k], self.dist_y[j]),
-                                                                       self.e_field_at_atom[1][k] * self.e_field_at_atom[1][j])
+                                                                       self.e_field_at_atom[1][k] *
+                                                                       self.e_field_at_atom[1][j])
                 self.D[j + 2 * self.natoms][k + self.natoms] = self.D[k + self.natoms][
                     j + 2 * self.natoms] = np.multiply(np.dot(self.dist_y[k], self.dist_z[j]),
                                                        self.e_field_at_atom[1][k] * self.e_field_at_atom[2][j])
@@ -578,18 +597,27 @@ class Conformer:
         for polESP in self.polESPs:
             for j in range(self.natoms):
                 for k in range(self.natoms):
-                    self.D[k][j] += np.multiply(np.dot(self.dist_x[k], self.dist_x[j]), polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[0][j])
+                    self.D[k][j] += np.multiply(np.dot(self.dist_x[k], self.dist_x[j]),
+                                                polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[0][j])
                     self.D[j + self.natoms][k] = self.D[k][j + self.natoms] = self.D[k][j + self.natoms] + np.multiply(
-                        np.dot(self.dist_x[k], self.dist_y[j]), polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[1][j])
-                    self.D[j + 2 * self.natoms][k] = self.D[k][j + 2 * self.natoms] = self.D[k][j + 2 * self.natoms] + np.multiply(
-                        np.dot(self.dist_x[k], self.dist_z[j]), polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[2][j])
+                        np.dot(self.dist_x[k], self.dist_y[j]),
+                        polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[1][j])
+                    self.D[j + 2 * self.natoms][k] = self.D[k][j + 2 * self.natoms] = self.D[k][
+                                                                                          j + 2 * self.natoms] + np.multiply(
+                        np.dot(self.dist_x[k], self.dist_z[j]),
+                        polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[2][j])
                     self.D[k + self.natoms][j + self.natoms] += np.multiply(np.dot(self.dist_y[k], self.dist_y[j]),
-                                                                           polESP.e_field_at_atom[1][k] * polESP.e_field_at_atom[1][j])
-                    self.D[j + 2 * self.natoms][k + self.natoms] = self.D[k + self.natoms][j + 2 * self.natoms] = self.D[k + self.natoms][j + 2 * self.natoms]+np.multiply(np.dot(self.dist_y[k], self.dist_z[j]), polESP.e_field_at_atom[1][k] * polESP.e_field_at_atom[2][j])
+                                                                            polESP.e_field_at_atom[1][k] *
+                                                                            polESP.e_field_at_atom[1][j])
+                    self.D[j + 2 * self.natoms][k + self.natoms] = self.D[k + self.natoms][j + 2 * self.natoms] = \
+                    self.D[k + self.natoms][j + 2 * self.natoms] + np.multiply(np.dot(self.dist_y[k], self.dist_z[j]),
+                                                                               polESP.e_field_at_atom[1][k] *
+                                                                               polESP.e_field_at_atom[2][j])
                     self.D[k + 2 * self.natoms][j + 2 * self.natoms] += np.multiply(
-                        np.dot(self.dist_z[k], self.dist_z[j]), polESP.e_field_at_atom[2][k] * polESP.e_field_at_atom[2][j])
+                        np.dot(self.dist_z[k], self.dist_z[j]),
+                        polESP.e_field_at_atom[2][k] * polESP.e_field_at_atom[2][j])
 
-        self.D = self.D / (len(self.polESPs)+1)
+        self.D = self.D / (len(self.polESPs) + 1)
 
         for j, atoms in enumerate(self._molecule.same_polarization_atoms):
             self.D[5 * self.natoms + j][atoms[0]] = 1
@@ -627,36 +655,43 @@ class Conformer:
         for k in range(self.natoms):
             for j in range(self.natoms):
                 self.B[k][j] = np.multiply(np.dot(self.dist[k], self.dist_x[j]), self.e_field_at_atom[0][j])  # B1
-                self.B[k][self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_y[j]), self.e_field_at_atom[1][j])  # B2
-                self.B[k][2 * self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_z[j]),self.e_field_at_atom[2][j])  # B3
-        
-        
-        for polESP in self.polESPs: 
+                self.B[k][self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_y[j]),
+                                                         self.e_field_at_atom[1][j])  # B2
+                self.B[k][2 * self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_z[j]),
+                                                             self.e_field_at_atom[2][j])  # B3
+
+        for polESP in self.polESPs:
             for k in range(self.natoms):
                 for j in range(self.natoms):
-                    self.B[k][j] += np.multiply(np.dot(self.dist[k], self.dist_x[j]), polESP.e_field_at_atom[0][j])  # B1
-                    self.B[k][self.natoms + j] += np.multiply(np.dot(self.dist[k], self.dist_y[j]), polESP.e_field_at_atom[1][j])  # B2
+                    self.B[k][j] += np.multiply(np.dot(self.dist[k], self.dist_x[j]),
+                                                polESP.e_field_at_atom[0][j])  # B1
+                    self.B[k][self.natoms + j] += np.multiply(np.dot(self.dist[k], self.dist_y[j]),
+                                                              polESP.e_field_at_atom[1][j])  # B2
                     self.B[k][2 * self.natoms + j] += np.multiply(np.dot(self.dist[k], self.dist_z[j]),
-                                                             polESP.e_field_at_atom[2][j])  # B3
+                                                                  polESP.e_field_at_atom[2][j])  # B3
         # matrix element C see notes
         # matrix element C
         for j in range(self.natoms):
             for k in range(self.natoms):
                 self.C[k][j] = np.multiply(np.dot(self.dist[j], self.dist_x[k]), self.e_field_at_atom[0][k])
-                self.C[self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_y[k]), self.e_field_at_atom[1][k])
-                self.C[2 * self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_z[k]), self.e_field_at_atom[2][k])
-            
-        for polESP in self.polESPs:    
+                self.C[self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_y[k]),
+                                                         self.e_field_at_atom[1][k])
+                self.C[2 * self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_z[k]),
+                                                             self.e_field_at_atom[2][k])
+
+        for polESP in self.polESPs:
             for j in range(self.natoms):
                 for k in range(self.natoms):
                     self.C[k][j] += np.multiply(np.dot(self.dist[j], self.dist_x[k]), polESP.e_field_at_atom[0][k])
-                    self.C[self.natoms + k][j] += np.multiply(np.dot(self.dist[j], self.dist_y[k]), polESP.e_field_at_atom[1][k])
-                    self.C[2 * self.natoms + k][j] += np.multiply(np.dot(self.dist[j], self.dist_z[k]), polESP.e_field_at_atom[2][k])
+                    self.C[self.natoms + k][j] += np.multiply(np.dot(self.dist[j], self.dist_y[k]),
+                                                              polESP.e_field_at_atom[1][k])
+                    self.C[2 * self.natoms + k][j] += np.multiply(np.dot(self.dist[j], self.dist_z[k]),
+                                                                  polESP.e_field_at_atom[2][k])
         # Normalize B and C
-        self.B = self.B / (len(self.polESPs)+1)
-        self.C = self.C / (len(self.polESPs)+1)
+        self.B = self.B / (len(self.polESPs) + 1)
+        self.C = self.C / (len(self.polESPs) + 1)
 
-        #Combine all matrices
+        # Combine all matrices
         self.X = np.concatenate(
             (np.concatenate((self.A, self.B), axis=1), np.concatenate((self.C, self.D), axis=1)), axis=0)
 
@@ -695,14 +730,16 @@ class Conformer:
         for k in range(self.natoms):
             self.C[k] = np.multiply(np.dot(self.esp_values, self.dist_x[k]), self.e_field_at_atom[0][k])
             self.C[k + self.natoms] = np.multiply(np.dot(self.esp_values, self.dist_y[k]), self.e_field_at_atom[1][k])
-            self.C[k + self.natoms * 2] = np.multiply(np.dot(self.esp_values, self.dist_z[k]), self.e_field_at_atom[2][k])
+            self.C[k + self.natoms * 2] = np.multiply(np.dot(self.esp_values, self.dist_z[k]),
+                                                      self.e_field_at_atom[2][k])
 
         for polESP in self.polESPs:
             esp_values = polESP.esp_values.to('elementary_charge / angstrom').magnitude
             for k in range(self.natoms):
                 self.C[k] += np.multiply(np.dot(esp_values, self.dist_x[k]), polESP.e_field_at_atom[0][k])
                 self.C[k + self.natoms] += np.multiply(np.dot(esp_values, self.dist_y[k]), polESP.e_field_at_atom[1][k])
-                self.C[k + self.natoms * 2] += np.multiply(np.dot(esp_values, self.dist_z[k]), polESP.e_field_at_atom[2][k])
+                self.C[k + self.natoms * 2] += np.multiply(np.dot(esp_values, self.dist_z[k]),
+                                                           polESP.e_field_at_atom[2][k])
 
         self.C = self.C / (len(self.polESPs) + 1)
 
@@ -885,7 +922,7 @@ class ESPGRID:
         # For all other methods this is set to 0.0 STILL HAVE to implment
         try:
             self._conformer.q_am1
-        except:
+        except Exception:
             log.warning('I do not have AM1-type charges')
             self._conformer.q_am1 = np.zeros(self._conformer.natoms)
 
@@ -894,17 +931,20 @@ class ESPGRID:
                 np.multiply(self._conformer.q_alpha[:self._conformer.natoms], self._conformer._molecule.scale[j]),
                 self._conformer.diatomic_dist_x[j]) + np.dot(
                 np.multiply(self._conformer.q_am1[:self._conformer.natoms], self._conformer._molecule.scale[j]),
-                self._conformer.diatomic_dist_x[j]) + self._ext_e_field[0].to('elementary_charge / angstrom / angstrom').magnitude
+                self._conformer.diatomic_dist_x[j]) + self._ext_e_field[0].to(
+                'elementary_charge / angstrom / angstrom').magnitude
             self.e_field_at_atom[1][j] = np.dot(
                 np.multiply(self._conformer.q_alpha[:self._conformer.natoms], self._conformer._molecule.scale[j]),
                 self._conformer.diatomic_dist_y[j]) + np.dot(
                 np.multiply(self._conformer.q_am1[:self._conformer.natoms], self._conformer._molecule.scale[j]),
-                self._conformer.diatomic_dist_y[j]) + self._ext_e_field[1].to('elementary_charge / angstrom / angstrom').magnitude
+                self._conformer.diatomic_dist_y[j]) + self._ext_e_field[1].to(
+                'elementary_charge / angstrom / angstrom').magnitude
             self.e_field_at_atom[2][j] = np.dot(
                 np.multiply(self._conformer.q_alpha[:self._conformer.natoms], self._conformer._molecule.scale[j]),
                 self._conformer.diatomic_dist_z[j]) + np.dot(
                 np.multiply(self._conformer.q_am1[:self._conformer.natoms], self._conformer._molecule.scale[j]),
-                self._conformer.diatomic_dist_z[j]) + self._ext_e_field[2].to('elementary_charge / angstrom / angstrom').magnitude
+                self._conformer.diatomic_dist_z[j]) + self._ext_e_field[2].to(
+                'elementary_charge / angstrom / angstrom').magnitude
 
         self.e = self.e_field_at_atom.flatten()
 
@@ -942,7 +982,7 @@ class ESPGRID:
                     try:
                         thole_ft = self._conformer.scale_scf
                         thole_fe = self._conformer.scale_scf
-                    except:
+                    except Exception:
 
                         thole_ft = self._conformer.scale
                         thole_fe = self._conformer.scale
@@ -1027,7 +1067,7 @@ class BCCUnpolESP(ESPGRID):
 
         self.load_grid(*args)
 
-        self.e_field_at_atom = np.zeros((3,self._conformer.natoms))
+        self.e_field_at_atom = np.zeros((3, self._conformer.natoms))
 
 
 # =============================================================================================
@@ -1055,7 +1095,7 @@ class BCCPolESP(ESPGRID):
 
         self.load_grid(*args)
 
-        self.e_field_at_atom = np.zeros((3,self._conformer.natoms))
+        self.e_field_at_atom = np.zeros((3, self._conformer.natoms))
 
 
 if __name__ == '__main__':
@@ -1100,9 +1140,9 @@ if __name__ == '__main__':
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
     test.molecules[0].conformers[0].add_baseESP(espfile)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
-    test.molecules[0].conformers[0].add_polESP(espfile,e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr') )
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr'))
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
-    #test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr') )
+    # test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr') )
     test.molecules[0].conformers[0].build_matrix_X()
     test.molecules[0].conformers[0].build_vector_Y()
     test.molecules[0].conformers[0].optimize_charges_alpha()

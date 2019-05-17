@@ -1027,7 +1027,7 @@ class BCCUnpolESP(ESPGRID):
 
         self.load_grid(*args)
 
-        self.e_field_at_atom = np.zeros((3,self.natoms))
+        self.e_field_at_atom = np.zeros((3,self._conformer.natoms))
 
 
 # =============================================================================================
@@ -1055,7 +1055,7 @@ class BCCPolESP(ESPGRID):
 
         self.load_grid(*args)
 
-        self.e_field_at_atom = np.zeros((3,self.natoms))
+        self.e_field_at_atom = np.zeros((3,self._conformer.natoms))
 
 
 if __name__ == '__main__':

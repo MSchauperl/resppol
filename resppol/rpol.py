@@ -373,7 +373,7 @@ class Molecule:
         self.build_vector_B()
         self.q = Q_(np.linalg.solve(self.A, self.B), 'elementary_charge')
 
-    def optimize_charges(self):
+    def optimize_charges_alpha(self):
         self.build_matrix_X()
         self.build_vector_Y()
         self.q_alpha = Q_(np.linalg.solve(self.X, self.Y), 'elementary_charge')

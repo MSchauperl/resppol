@@ -8,7 +8,6 @@ dependencies:
     # Base depends
   - python
   - pip
-  - time
   - typing
   - scipy
   - numpy

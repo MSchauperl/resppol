@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+        #!/usr/bin/env python
 
 # =============================================================================================
 # MODULE DOCSTRING
@@ -22,6 +22,7 @@ import openforcefield.topology as openff
 from openforcefield.typing.engines.smirnoff import ForceField
 from scipy.spatial import distance
 import os
+import copy
 # Initialize units
 from pint import UnitRegistry
 
@@ -91,6 +92,14 @@ def find_eq_atoms(mol1):
 
     return sorted_eq_atoms
 
+def return_sq_efield(matrix):
+    dim1 = len(matrix)
+    dim2 = len(matrix[0])
+    sq_efield = np.zeros((dim1,dim1,dim2))
+    for i,vector1 in enumerate(matrix):
+        for j,vector2 in enumerate(matrix):
+            sq_efield[i][j] = vector1*vector2
+    return sq_efield
 
 # =============================================================================================
 # TrainingSet
@@ -102,7 +111,7 @@ class TrainingSet():
 
     """
 
-    def __init__(self, mode='q',scaleparameters = None, scf_scaleparameters=None):
+    def __init__(self, mode='q', scaleparameters=None, scf_scaleparameters=None, SCF=False, thole=False):
         self.molecules = list()
         self.B = np.zeros(0)
         self.A = np.zeros((0, 0))
@@ -110,6 +119,10 @@ class TrainingSet():
         self.mode = mode
         self.scf_scaleparameters = scf_scaleparameters
         self.scaleparameters = scaleparameters
+        self._SCF = SCF
+        self._thole = thole
+        self._mode = mode
+        self.step = 0
 
     def load_from_file(self):
         f = open(datei)
@@ -121,9 +134,9 @@ class TrainingSet():
             self.add_molecule(Molecule(mol2file))
 
     def add_molecule(self, datei):
-        self.number_of_lines_in_A = 0
-        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_A, trainingset = self ))
-        self.number_of_lines_in_A += self.molecules[-1]._lines_in_A
+        self.number_of_lines_in_X = 0
+        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self))
+        self.number_of_lines_in_X += self.molecules[-1]._lines_in_X
 
     def build_matrix_A(self):
         """
@@ -190,13 +203,16 @@ class Molecule:
         :return:
         """
 
-    def __init__(self, datei, position=0, trainingset = None):
+    def __init__(self, datei, position=0, trainingset=None):
 
         # Get Molecle name from filename
         self.B = 0.0
         self.A = 0.0
         self._name = datei.split('/')[-1].strip(".mol2")
         self._trainingset = trainingset
+
+        # Number of optimization steps
+        self.step = 0
 
         # Postion of this molecule in optimization matrix A
         self.position_in_A = position
@@ -205,10 +221,15 @@ class Molecule:
         if trainingset == None:
             self.scf_scaleparameters = None
             self.scaleparameters = None
+            self._thole = False
+            self._SCF = False
+            self._mode = 'q'
         else:
-            self.scf_scaleparameters= self._trainingset.scf_scaleparameters
-            self.scaleparameters= self._trainingset.scaleparameters
-
+            self.scf_scaleparameters = self._trainingset.scf_scaleparameters
+            self.scaleparameters = self._trainingset.scaleparameters
+            self._thole = self._trainingset._thole
+            self._SCF = self._trainingset._SCF
+            self._mode = self._trainingset._mode
             # Initialize OE Molecule
         self.oemol = oechem.OEMol()
 
@@ -229,7 +250,7 @@ class Molecule:
                 log.warning("""I detect an atom with atomic number: {}
                 Are you sure you want to include such an atom in your dataset?
                 Maybe you are using a mol2 file with amber atomtypes""".format(atom.GetAtomicNum()))
-                raise Warning ("""I detect an atom with atomic number: {}
+                raise Warning("""I detect an atom with atomic number: {}
                 Are you sure you want to include such an atom in your dataset?
                 Maybe you are using a mol2 file with amber atomtypes""".format(atom.GetAtomicNum()))
 
@@ -268,13 +289,20 @@ class Molecule:
         # Initialize and fill scaling matrix
         self.scale = np.ones((self._natoms, self._natoms))
         self.scale_scf = np.ones((self._natoms, self._natoms))
-        self.scaling(scf_scaleparameters = self.scf_scaleparameters )
+        self.scaling(scf_scaleparameters=self.scf_scaleparameters)
 
         # Initialize conformers
         self.conformers = list()
 
-        # Number of lines for matrix a
-        self._lines_in_A = self._natoms + len(self.chemical_eq_atoms) + 1
+        # Number of lines for matrix X
+        if self._mode == 'q':
+            self._lines_in_X = self._natoms + len(self.chemical_eq_atoms) + 1
+        if self._mode == 'q_alpha':
+            self._lines_in_X = self._natoms + len(
+                self.chemical_eq_atoms) + 1 + 3 * self._natoms + 2 * self._natoms + len(self.same_polarization_atoms)
+
+        # Initiliaxe charges
+        self.q_alpha = np.zeros(self._lines_in_X)
 
     def add_bond(self, index, atom_indices, parameter_id):
         atom_index1 = atom_indices[0]
@@ -465,8 +493,12 @@ class Conformer:
         self.atom_positions_angstrom = self.atom_positions.to('angstrom').magnitude
         self.natoms = len(self.atom_positions.magnitude)
         self.baseESP = None
-        self.polESP = list()
+        self.polESPs = list()
         self._molecule = molecule
+        self.q_alpha = self._molecule.q_alpha
+
+        # Initiliaze Electric field vectors
+        self.e_field_at_atom = np.zeros((3,self.natoms))
 
     def get_grid_coord(self):
         self.grid_coord_angstrom = self.baseESP.positions.to('angstrom').magnitude
@@ -484,8 +516,8 @@ class Conformer:
             if atom_is_present == 0:
                 raise Exception("ESP grid does not belong to the conformer")
 
-    def add_polESP(self, *args):
-        self.polESP.append(BCCPolESP(*args, conformer=self))
+    def add_polESP(self, *args, e_field=Q_([0.0, 0.0, 0.0], 'bohr')):
+        self.polESPs.append(BCCPolESP(*args, conformer=self, e_field=e_field))
 
     # Build the matrix A for the charge optimization
     def build_matrix_A(self):
@@ -526,9 +558,39 @@ class Conformer:
         # restrains for isotropic polarization
         # Restaint atoms with same polarization parameters
         self.Dlines = (3 * self.natoms + 2 * self.natoms + len(self._molecule.same_polarization_atoms))
-
         self.D = np.zeros((self.Dlines, self.Dlines))
+
+        for j in range(self.natoms):
+            for k in range(self.natoms):
+                self.D[k][j] = np.multiply(np.dot(self.dist_x[k], self.dist_x[j]), self.e_field_at_atom[0][k] * self.e_field_at_atom[0][j])
+                self.D[j + self.natoms][k] = self.D[k][j + self.natoms] = np.multiply(
+                    np.dot(self.dist_x[k], self.dist_y[j]), self.e_field_at_atom[0][k] * self.e_field_at_atom[1][j])
+                self.D[j + 2 * self.natoms][k] = self.D[k][j + 2 * self.natoms] = np.multiply(
+                    np.dot(self.dist_x[k], self.dist_z[j]), self.e_field_at_atom[0][k] * self.e_field_at_atom[2][j])
+                self.D[k + self.natoms][j + self.natoms] = np.multiply(np.dot(self.dist_y[k], self.dist_y[j]),
+                                                                       self.e_field_at_atom[1][k] * self.e_field_at_atom[1][j])
+                self.D[j + 2 * self.natoms][k + self.natoms] = self.D[k + self.natoms][
+                    j + 2 * self.natoms] = np.multiply(np.dot(self.dist_y[k], self.dist_z[j]),
+                                                       self.e_field_at_atom[1][k] * self.e_field_at_atom[2][j])
+                self.D[k + 2 * self.natoms][j + 2 * self.natoms] = np.multiply(
+                    np.dot(self.dist_z[k], self.dist_z[j]), self.e_field_at_atom[2][k] * self.e_field_at_atom[2][j])
         # Add dipole restraints for equivalent atoms /only works for isotropic suff now
+        for polESP in self.polESPs:
+            for j in range(self.natoms):
+                for k in range(self.natoms):
+                    self.D[k][j] += np.multiply(np.dot(self.dist_x[k], self.dist_x[j]), polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[0][j])
+                    self.D[j + self.natoms][k] = self.D[k][j + self.natoms] = self.D[k][j + self.natoms] + np.multiply(
+                        np.dot(self.dist_x[k], self.dist_y[j]), polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[1][j])
+                    self.D[j + 2 * self.natoms][k] = self.D[k][j + 2 * self.natoms] = self.D[k][j + 2 * self.natoms] + np.multiply(
+                        np.dot(self.dist_x[k], self.dist_z[j]), polESP.e_field_at_atom[0][k] * polESP.e_field_at_atom[2][j])
+                    self.D[k + self.natoms][j + self.natoms] += np.multiply(np.dot(self.dist_y[k], self.dist_y[j]),
+                                                                           polESP.e_field_at_atom[1][k] * polESP.e_field_at_atom[1][j])
+                    self.D[j + 2 * self.natoms][k + self.natoms] = self.D[k + self.natoms][j + 2 * self.natoms] = self.D[k + self.natoms][j + 2 * self.natoms]+np.multiply(np.dot(self.dist_y[k], self.dist_z[j]), polESP.e_field_at_atom[1][k] * polESP.e_field_at_atom[2][j])
+                    self.D[k + 2 * self.natoms][j + 2 * self.natoms] += np.multiply(
+                        np.dot(self.dist_z[k], self.dist_z[j]), polESP.e_field_at_atom[2][k] * polESP.e_field_at_atom[2][j])
+
+        self.D = self.D / (len(self.polESPs)+1)
+
         for j, atoms in enumerate(self._molecule.same_polarization_atoms):
             self.D[5 * self.natoms + j][atoms[0]] = 1
             self.D[5 * self.natoms + j][atoms[1]] = -1
@@ -546,28 +608,7 @@ class Conformer:
             self.D[4 * self.natoms + j][j] = self.D[j][4 * self.natoms + j] = 1.0
             self.D[4 * self.natoms + j][j + 2 * self.natoms] = self.D[j + 2 * self.natoms][4 * self.natoms + j] = -1.0
 
-    # noinspection PyProtectedMember
-    def build_vector_B(self):
-        """
-        Creates the Vector B for the charge fitting.
-        :return:
-        """
-        # Determine size of the vector for this molecule
-        # every atom is one line
-        # one line to restrain the overall charge of the molecule
-        # one line for every pair of equivalent atoms
-        self.Alines = self.natoms + 1 + len(self._molecule.chemical_eq_atoms)
-        self.B = np.zeros(self.Alines)
-        self.esp_values = self.baseESP.esp_values.to('elementary_charge / angstrom').magnitude
-
-        for k in range(self.natoms):
-            self.B[k] = np.dot(self.esp_values, self.dist[k])
-            self.B[self.natoms] = self._molecule._charge
-        for k, eq_atoms in enumerate(self._molecule.chemical_eq_atoms):
-            if eq_atoms[1] > 0:
-                self.B[self.natoms + 1 + k] = 0.0
-
-    def make_X(self):
+    def build_matrix_X(self):
         """
         Creates Matrix X for the RESP-POl method.
 
@@ -585,161 +626,109 @@ class Conformer:
         # Matrix element B see notes
         for k in range(self.natoms):
             for j in range(self.natoms):
-                self.B[k][j] = np.multiply(np.dot(self.dist[k], self.dist_x[j]), self.e_x[j])  # B1
-                self.B[k][self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_y[j]), self.e_y[j])  # B2
-                self.B[k][2 * self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_z[j]),
-                                                             self.e_z[j])  # B3
-
+                self.B[k][j] = np.multiply(np.dot(self.dist[k], self.dist_x[j]), self.e_field_at_atom[0][j])  # B1
+                self.B[k][self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_y[j]), self.e_field_at_atom[1][j])  # B2
+                self.B[k][2 * self.natoms + j] = np.multiply(np.dot(self.dist[k], self.dist_z[j]),self.e_field_at_atom[2][j])  # B3
+        
+        
+        for polESP in self.polESPs: 
+            for k in range(self.natoms):
+                for j in range(self.natoms):
+                    self.B[k][j] += np.multiply(np.dot(self.dist[k], self.dist_x[j]), polESP.e_field_at_atom[0][j])  # B1
+                    self.B[k][self.natoms + j] += np.multiply(np.dot(self.dist[k], self.dist_y[j]), polESP.e_field_at_atom[1][j])  # B2
+                    self.B[k][2 * self.natoms + j] += np.multiply(np.dot(self.dist[k], self.dist_z[j]),
+                                                             polESP.e_field_at_atom[2][j])  # B3
         # matrix element C see notes
         # matrix element C
         for j in range(self.natoms):
             for k in range(self.natoms):
-                self.C[k][j] = np.multiply(np.dot(self.dist[j], self.dist_x[k]), self.e_x[k])
-                self.C[self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_y[k]), self.e_y[k])
-                self.C[2 * self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_z[k]), self.e_z[k])
+                self.C[k][j] = np.multiply(np.dot(self.dist[j], self.dist_x[k]), self.e_field_at_atom[0][k])
+                self.C[self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_y[k]), self.e_field_at_atom[1][k])
+                self.C[2 * self.natoms + k][j] = np.multiply(np.dot(self.dist[j], self.dist_z[k]), self.e_field_at_atom[2][k])
+            
+        for polESP in self.polESPs:    
+            for j in range(self.natoms):
+                for k in range(self.natoms):
+                    self.C[k][j] += np.multiply(np.dot(self.dist[j], self.dist_x[k]), polESP.e_field_at_atom[0][k])
+                    self.C[self.natoms + k][j] += np.multiply(np.dot(self.dist[j], self.dist_y[k]), polESP.e_field_at_atom[1][k])
+                    self.C[2 * self.natoms + k][j] += np.multiply(np.dot(self.dist[j], self.dist_z[k]), polESP.e_field_at_atom[2][k])
+        # Normalize B and C
+        self.B = self.B / (len(self.polESPs)+1)
+        self.C = self.C / (len(self.polESPs)+1)
 
-        # Polarizaton matrix : the large form
-        for j in range(self.natoms):
-            for k in range(self.natoms):
-                self.D[k][j] = np.multiply(np.dot(self.dist_x[k], self.dist_x[j]), self.e_x[k] * self.e_x[j])
-                self.D[j + self.natoms][k] = self.D[k][j + self.natoms] = np.multiply(
-                    np.dot(self.dist_x[k], self.dist_y[j]), self.e_x[k] * self.e_y[j])
-                self.D[j + 2 * self.natoms][k] = self.D[k][j + 2 * self.natoms] = np.multiply(
-                    np.dot(self.dist_x[k], self.dist_z[j]), self.e_x[k] * self.e_z[j])
-                self.D[k + self.natoms][j + self.natoms] = np.multiply(np.dot(self.dist_y[k], self.dist_y[j]),
-                                                                       self.e_y[k] * self.e_y[j])
-                self.D[j + 2 * self.natoms][k + self.natoms] = self.D[k + self.natoms][
-                    j + 2 * self.natoms] = np.multiply(np.dot(self.dist_y[k], self.dist_z[j]),
-                                                       self.e_y[k] * self.e_z[j])
-                self.D[k + 2 * self.natoms][j + 2 * self.natoms] = np.multiply(
-                    np.dot(self.dist_z[k], self.dist_z[j]), self.e_z[k] * self.e_z[j])
-
-        # Combine all matrices
+        #Combine all matrices
         self.X = np.concatenate(
             (np.concatenate((self.A, self.B), axis=1), np.concatenate((self.C, self.D), axis=1)), axis=0)
 
-    # only charge matrix with restraints
+    # noinspection PyProtectedMember
+    def build_vector_B(self):
+        """
+        Creates the Vector B for the charge fitting.
+        :return:
+        """
+        # Determine size of the vector for this molecule
+        # every atom is one line
+        # one line to restrain the overall charge of the molecule
+        # one line for every pair of equivalent atoms
+        self.Alines = self.natoms + 1 + len(self._molecule.chemical_eq_atoms)
+        self.B = np.zeros(self.Alines)
+        self.esp_values = self.baseESP.esp_values.to('elementary_charge / angstrom').magnitude
+
+        for k in range(self.natoms):
+            self.B[k] = np.dot(self.esp_values, self.dist[k])
+        self.B[self.natoms] = self._molecule._charge
+        for polESP in self.polESPs:
+            esp_values = polESP.esp_values.to('elementary_charge / angstrom').magnitude
+            for k in range(self.natoms):
+                self.B[k] += np.dot(esp_values, self.dist[k])
+            self.B[self.natoms] = self._molecule._charge
+
+        self.B = self.B / (len(self.polESPs) + 1)
+        for k, eq_atoms in enumerate(self._molecule.chemical_eq_atoms):
+            if eq_atoms[1] > 0:
+                self.B[self.natoms + 1 + k] = 0.0
+
+    def build_vector_C(self):
+
+        self.C = np.zeros(self.Dlines)
+        self.esp_values = self.baseESP.esp_values.to('elementary_charge / angstrom').magnitude
+        for k in range(self.natoms):
+            self.C[k] = np.multiply(np.dot(self.esp_values, self.dist_x[k]), self.e_field_at_atom[0][k])
+            self.C[k + self.natoms] = np.multiply(np.dot(self.esp_values, self.dist_y[k]), self.e_field_at_atom[1][k])
+            self.C[k + self.natoms * 2] = np.multiply(np.dot(self.esp_values, self.dist_z[k]), self.e_field_at_atom[2][k])
+
+        for polESP in self.polESPs:
+            esp_values = polESP.esp_values.to('elementary_charge / angstrom').magnitude
+            for k in range(self.natoms):
+                self.C[k] += np.multiply(np.dot(esp_values, self.dist_x[k]), polESP.e_field_at_atom[0][k])
+                self.C[k + self.natoms] += np.multiply(np.dot(esp_values, self.dist_y[k]), polESP.e_field_at_atom[1][k])
+                self.C[k + self.natoms * 2] += np.multiply(np.dot(esp_values, self.dist_z[k]), polESP.e_field_at_atom[2][k])
+
+        self.C = self.C / (len(self.polESPs) + 1)
+
+        for j, atoms in enumerate(self._molecule.same_polarization_atoms):
+            self.C[5 * self.natoms + j] = 0.0
+
+    def build_vector_Y(self):
+        """
+        Creates the Vector Y for the RESP-Pol Method.
+        :return:
+        """
+        self.build_vector_B()
+        self.build_vector_C()
+        self.Y = np.concatenate((self.B, self.C))
+
+    def get_electric_field(self):
+        self.baseESP.get_electric_field()
+        self.e_field_at_atom = self.baseESP.e_field_at_atom
+        for polESP in self.polESPs:
+            polESP.get_electric_field()
 
     def optimize_charges_alpha(self):
-        self.q = np.linalg.solve(self.X, self.Y)
+        self.q_alpha = np.linalg.solve(self.X, self.Y)
 
     def build_matrix_Abcc(self):
         self.get_distances()
-
-    def get_electric_field(self, ):
-        """
-        Calculates the electric field at every atomic positions.
-        :return:
-        """
-        self.e_x_old = copy.copy(self.e_x)
-        self.e_y_old = copy.copy(self.e_y)
-        self.e_z_old = copy.copy(self.e_z)
-        self.dipole = self.q_alpha[self.Alines:self.Alines + self.natoms]
-        self.dipole[np.where(self.dipole == 0.0)] += 10E-10
-
-        # Load permanent charges for BCC method
-        # For all other methods this is set to 0.0 STILL HAVE to implment
-        try:
-            self.q_am1
-        except:
-            log.error('I do not have AM1-type charges')
-            exit()
-        else:
-            for j in range(self.natoms):
-                self.e_x[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.diatomic_dist_x[j]) + np.dot(
-                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.diatomic_dist_x[j]) + self.efield_ext[0]
-                self.e_y[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.diatomic_dist_y[j]) + np.dot(
-                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.diatomic_dist_y[j]) + self.efield_ext[1]
-                self.e_z[j] = np.dot(np.multiply(self.q_alpha[:self.natoms], self.scale[j]), self.diatomic_dist_z[j]) + np.dot(
-                    np.multiply(self.q_am1[:self.natoms], self.scale[j]), self.diatomic_dist_z[j]) + self.efield_ext[2]
-
-        self.e = np.concatenate((self.e_x, self.e_y, self.e_z))
-
-        if self.SCF and self.step > 0:
-            if not hasattr(self, 'Bdip') or self.thole:
-                if self.thole:
-                    # self.thole_param=1.368711/BOHR**2
-                    self.thole_param = 0.390
-                    self.dipole_tmp = np.where(self.dipole < 0.0, -self.dipole, self.dipole)
-                    self.thole_v = np.multiply(self.adist, np.float_power(
-                        np.multiply(self.dipole_tmp[:self.natoms, None], self.dipole_tmp[:self.natoms]), 1. / 6))
-                    di = np.diag_indices(self.natoms)
-                    self.thole_v[di] = 1.0
-                    self.thole_v = 1. / self.thole_v
-                    self.thole_v[di] = 0.0
-
-                    # Exponential thole
-                    self.thole_fe = np.ones((self.natoms, self.natoms))
-                    self.thole_ft = np.ones((self.natoms, self.natoms))
-                    self.thole_fe -= np.exp(np.multiply(self.thole_param, np.power(-self.thole_v, 3)))
-                    self.thole_ft -= np.multiply(np.multiply(self.thole_param, np.power(self.thole_v, 3)) + 1.,
-                                                 np.exp(np.multiply(self.thole_param, np.power(-self.thole_v, 3))))
-                    # 1.5 was found in the OpenMM code. Not sure whuy it is there
-
-                    # In original thole these lines should not be here
-                    # self.thole_ft = np.multiply(self.thole_ft, self.scale)
-                    # self.thole_fe = np.multiply(self.thole_fe, self.scale)
-                    # Linear thole
-                    # self.thole_fe=np.zeros((self.natoms,self.natoms))
-                    # self.thole_fe=np.zeros((self.natoms,self.natoms))
-                    # self.thole_fe=np.where(self.thole_v>1.0,1.0,4*np.power(self.thole_v,3)-3*np.power(self.thole_v,4))
-                    # self.thole_ft=np.where(self.thole_v>1.0,1.0,np.power(self.thole_v,4))
-                else:
-                    try:
-                        self.thole_ft = self.scale_scf
-                        self.thole_fe = self.scale_scf
-                    except:
-
-                        self.thole_ft = self.scale
-                        self.thole_fe = self.scale
-                    else:
-                        print('Using different set of scaling for SCF interactions')
-                        log.info('Using different set of scaling for SCF interactions')
-                self.Bdip11 = np.add(np.multiply(self.thole_fe, self.diatomic_dist_3), np.multiply(self.thole_ft,
-                                                                                                   -3 * np.multiply(
-                                                                                                       np.multiply(
-                                                                                                           self.diatomic_distb_x,
-                                                                                                           self.diatomic_distb_x),
-                                                                                                       self.diatomic_dist_5)))
-                self.Bdip22 = np.add(np.multiply(self.thole_fe, self.diatomic_dist_3), np.multiply(self.thole_ft,
-                                                                                                   -3 * np.multiply(
-                                                                                                       np.multiply(
-                                                                                                           self.diatomic_distb_y,
-                                                                                                           self.diatomic_distb_y),
-                                                                                                       self.diatomic_dist_5)))
-                self.Bdip33 = np.add(np.multiply(self.thole_fe, self.diatomic_dist_3), np.multiply(self.thole_ft,
-                                                                                                   -3 * np.multiply(
-                                                                                                       np.multiply(
-                                                                                                           self.diatomic_distb_z,
-                                                                                                           self.diatomic_distb_z),
-                                                                                                       self.diatomic_dist_5)))
-                self.Bdip12 = np.multiply(self.thole_ft,
-                                          -3 * np.multiply(np.multiply(self.diatomic_distb_x, self.diatomic_distb_y),
-                                                           self.diatomic_dist_5))
-                self.Bdip13 = np.multiply(self.thole_ft,
-                                          -3 * np.multiply(np.multiply(self.diatomic_distb_x, self.diatomic_distb_z),
-                                                           self.diatomic_dist_5))
-                self.Bdip23 = np.multiply(self.thole_ft,
-                                          -3 * np.multiply(np.multiply(self.diatomic_distb_y, self.diatomic_distb_z),
-                                                           self.diatomic_dist_5))
-                self.Bdip = np.concatenate((np.concatenate((self.Bdip11, self.Bdip12, self.Bdip13), axis=1),
-                                            np.concatenate((self.Bdip12, self.Bdip22, self.Bdip23), axis=1),
-                                            np.concatenate((self.Bdip13, self.Bdip23, self.Bdip33), axis=1)),
-                                           axis=0)
-
-            for j in range(self.natoms):
-                for k in range(3):
-                    for l in range(3):
-                        self.Bdip[k * self.natoms + j][l * self.natoms + j] = 0.0
-
-            for j in range(3 * self.natoms):
-                self.Bdip[j][j] = 1. / self.dipole[j]
-            self.dipole_scf = np.linalg.solve(self.Bdip, self.e)
-            self.e = np.divide(self.dipole_scf, self.dipole[:self.ndipoles])
-        self.e_x = 1.0 * self.e[:self.natoms] + 0. * self.e_x_old
-        self.e_y = 1.0 * self.e[self.natoms:2 * self.natoms] + 0. * self.e_y_old
-        self.e_z = 1.0 * self.e[2 * self.natoms:3 * self.natoms] + 0. * self.e_z_old
-        self.step += 1
 
     def get_distances(self):
         self.get_grid_coord()
@@ -883,6 +872,134 @@ class ESPGRID:
             self.positions = Q_(np.loadtxt(gridfile), 'angstrom')
             self.esp_values = Q_(np.loadtxt(espfile), 'elementary_charge / bohr')
 
+    def get_electric_field(self, ):
+        """
+        Calculates the electric field at every atomic positions.
+        :return:
+        """
+        e_field_at_atom_old = copy.copy(self.e_field_at_atom)
+        dipole = self._conformer.q_alpha[self._conformer.Alines:self._conformer.Alines + self._conformer.natoms]
+        dipole[np.where(dipole == 0.0)] += 10E-10
+
+        # Load permanent charges for BCC method
+        # For all other methods this is set to 0.0 STILL HAVE to implment
+        try:
+            self._conformer.q_am1
+        except:
+            log.warning('I do not have AM1-type charges')
+            self._conformer.q_am1 = np.zeros(self._conformer.natoms)
+
+        for j in range(self._conformer.natoms):
+            self.e_field_at_atom[0][j] = np.dot(
+                np.multiply(self._conformer.q_alpha[:self._conformer.natoms], self._conformer._molecule.scale[j]),
+                self._conformer.diatomic_dist_x[j]) + np.dot(
+                np.multiply(self._conformer.q_am1[:self._conformer.natoms], self._conformer._molecule.scale[j]),
+                self._conformer.diatomic_dist_x[j]) + self._ext_e_field[0].to('elementary_charge / angstrom / angstrom').magnitude
+            self.e_field_at_atom[1][j] = np.dot(
+                np.multiply(self._conformer.q_alpha[:self._conformer.natoms], self._conformer._molecule.scale[j]),
+                self._conformer.diatomic_dist_y[j]) + np.dot(
+                np.multiply(self._conformer.q_am1[:self._conformer.natoms], self._conformer._molecule.scale[j]),
+                self._conformer.diatomic_dist_y[j]) + self._ext_e_field[1].to('elementary_charge / angstrom / angstrom').magnitude
+            self.e_field_at_atom[2][j] = np.dot(
+                np.multiply(self._conformer.q_alpha[:self._conformer.natoms], self._conformer._molecule.scale[j]),
+                self._conformer.diatomic_dist_z[j]) + np.dot(
+                np.multiply(self._conformer.q_am1[:self._conformer.natoms], self._conformer._molecule.scale[j]),
+                self._conformer.diatomic_dist_z[j]) + self._ext_e_field[2].to('elementary_charge / angstrom / angstrom').magnitude
+
+        self.e = self.e_field_at_atom.flatten()
+
+        if self._conformer._molecule._SCF and self._conformer._molecule.step > 0:
+            if not hasattr(self, 'Bdip') or self._conformer._molecule._thole:
+                if self._conformer._molecule._thole:
+                    # thole_param=1.368711/BOHR**2
+                    thole_param = 0.390
+                    dipole_tmp = np.where(dipole < 0.0, -dipole, dipole)
+                    thole_v = np.multiply(self.adist, np.float_power(
+                        np.multiply(dipole_tmp[:self._conformer.natoms, None], dipole_tmp[:self._conformer.natoms]),
+                        1. / 6))
+                    di = np.diag_indices(self._conformer.natoms)
+                    thole_v[di] = 1.0
+                    thole_v = 1. / thole_v
+                    thole_v[di] = 0.0
+
+                    # Exponential thole
+                    thole_fe = np.ones((self._conformer.natoms, self._conformer.natoms))
+                    thole_ft = np.ones((self._conformer.natoms, self._conformer.natoms))
+                    thole_fe -= np.exp(np.multiply(thole_param, np.power(-thole_v, 3)))
+                    thole_ft -= np.multiply(np.multiply(thole_param, np.power(thole_v, 3)) + 1.,
+                                            np.exp(np.multiply(thole_param, np.power(-thole_v, 3))))
+                    # 1.5 was found in the OpenMM code. Not sure whuy it is there
+
+                    # In original thole these lines should not be here
+                    # thole_ft = np.multiply(thole_ft, self._conformer.scale)
+                    # thole_fe = np.multiply(thole_fe, self._conformer.scale)
+                    # Linear thole
+                    # thole_fe=np.zeros((self._conformer.natoms,self._conformer.natoms))
+                    # thole_fe=np.zeros((self._conformer.natoms,self._conformer.natoms))
+                    # thole_fe=np.where(thole_v>1.0,1.0,4*np.power(thole_v,3)-3*np.power(thole_v,4))
+                    # thole_ft=np.where(thole_v>1.0,1.0,np.power(thole_v,4))
+                else:
+                    try:
+                        thole_ft = self._conformer.scale_scf
+                        thole_fe = self._conformer.scale_scf
+                    except:
+
+                        thole_ft = self._conformer.scale
+                        thole_fe = self._conformer.scale
+                    else:
+                        print('Using different set of scaling for SCF interactions')
+                        log.info('Using different set of scaling for SCF interactions')
+                Bdip11 = np.add(np.multiply(thole_fe, self._conformer.diatomic_dist_3), np.multiply(thole_ft,
+                                                                                                    -3 * np.multiply(
+                                                                                                        np.multiply(
+                                                                                                            self._conformer.diatomic_distb_x,
+                                                                                                            self._conformer.diatomic_distb_x),
+                                                                                                        self._conformer.diatomic_dist_5)))
+                Bdip22 = np.add(np.multiply(thole_fe, self._conformer.diatomic_dist_3), np.multiply(thole_ft,
+                                                                                                    -3 * np.multiply(
+                                                                                                        np.multiply(
+                                                                                                            self._conformer.diatomic_distb_y,
+                                                                                                            self._conformer.diatomic_distb_y),
+                                                                                                        self._conformer.diatomic_dist_5)))
+                Bdip33 = np.add(np.multiply(thole_fe, self._conformer.diatomic_dist_3), np.multiply(thole_ft,
+                                                                                                    -3 * np.multiply(
+                                                                                                        np.multiply(
+                                                                                                            self._conformer.diatomic_distb_z,
+                                                                                                            self._conformer.diatomic_distb_z),
+                                                                                                        self._conformer.diatomic_dist_5)))
+                Bdip12 = np.multiply(thole_ft,
+                                     -3 * np.multiply(np.multiply(self._conformer.diatomic_distb_x,
+                                                                  self._conformer.diatomic_distb_y),
+                                                      self._conformer.diatomic_dist_5))
+                Bdip13 = np.multiply(thole_ft,
+                                     -3 * np.multiply(np.multiply(self._conformer.diatomic_distb_x,
+                                                                  self._conformer.diatomic_distb_z),
+                                                      self._conformer.diatomic_dist_5))
+                Bdip23 = np.multiply(thole_ft,
+                                     -3 * np.multiply(np.multiply(self._conformer.diatomic_distb_y,
+                                                                  self._conformer.diatomic_distb_z),
+                                                      self._conformer.diatomic_dist_5))
+                Bdip = np.concatenate((np.concatenate((Bdip11, Bdip12, Bdip13), axis=1),
+                                       np.concatenate((Bdip12, Bdip22, Bdip23), axis=1),
+                                       np.concatenate((Bdip13, Bdip23, Bdip33), axis=1)),
+                                      axis=0)
+
+            for j in range(self._conformer.natoms):
+                for k in range(3):
+                    for l in range(3):
+                        Bdip[k * self._conformer.natoms + j][l * self._conformer.natoms + j] = 0.0
+
+            for j in range(3 * self._conformer.natoms):
+                Bdip[j][j] = 1. / dipole[j]
+            dipole_scf = np.linalg.solve(Bdip, self.e)
+            self.e = np.divide(dipole_scf, dipole[:self.ndipoles])
+        self.e_field_at_atom[0] = 1.0 * self.e[:self._conformer.natoms]
+        self.e_field_at_atom[1] = 1.0 * self.e[self._conformer.natoms:2 * self._conformer.natoms]
+        self.e_field_at_atom[2] = 1.0 * self.e[2 * self._conformer.natoms:3 * self._conformer.natoms]
+
+        # WARNING Have to implement this add a different position
+        # self.step += 1
+
 
 # =============================================================================================
 # BCCUnpolESP
@@ -902,13 +1019,15 @@ class BCCUnpolESP(ESPGRID):
         self.define_grid(*args)
         self.esp_values = None
         self.positions = None
-        self.conformer = conformer
+        self._conformer = conformer
 
         # External e-field is 0 in all directions
         vector = Q_([0, 0, 0], 'elementary_charge / bohr / bohr')
         self.set_ext_e_field(vector)
 
         self.load_grid(*args)
+
+        self.e_field_at_atom = np.zeros((3,self.natoms))
 
 
 # =============================================================================================
@@ -920,14 +1039,29 @@ class BCCPolESP(ESPGRID):
 
     """
 
-    def __init__(self, ESPfile, ext_e_field):
-        pass
+    def __init__(self, *args, conformer=None, e_field=Q_([0.0, 0.0, 0.0], 'elementary_charge / bohr / bohr')):
+        # Decide if we have a Gaussian grid or a psi4 grid
+        self.gridtype = None
+        self.natoms = -1
+        self.atoms = []
+        self.atom_positions = []
+        self.define_grid(*args)
+        self.esp_values = None
+        self.positions = None
+        self._conformer = conformer
+
+        # Set external e-field
+        self.set_ext_e_field(e_field)
+
+        self.load_grid(*args)
+
+        self.e_field_at_atom = np.zeros((3,self.natoms))
 
 
 if __name__ == '__main__':
-
+    """
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
-    test = TrainingSet(scf_scaleparameters=[0.0,0.0,0.5])
+    test = TrainingSet(scf_scaleparameters=[0.0, 0.0, 0.5])
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     print(test.molecules[0].same_polarization_atoms)
@@ -941,17 +1075,37 @@ if __name__ == '__main__':
     espfile = '/home/michael/resppol/resppol/tmp/butanol/conf0/molecule0.gesp'
     test.molecules[1].conformers[0].add_baseESP(espfile)
     test.optimize_charges()
-    test.molecules[0].conformers[0].build_matrix_D()
+    test.molecules[0].conformers[0].build_matrix_X()
     for molecule in test.molecules:
         print(molecule.q)
 
     print('FINISH')
-
+    """
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
+    test = TrainingSet()
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1_Z+.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=[0, 0, 1])
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1_Z-.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=[0, 0, -1])
+    test.optimize_charges()
+    print(test.q)
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
     test = TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
     test.molecules[0].conformers[0].add_baseESP(espfile)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile,e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr') )
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
+    #test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr') )
+    test.molecules[0].conformers[0].build_matrix_X()
+    test.molecules[0].conformers[0].build_vector_Y()
+    test.molecules[0].conformers[0].optimize_charges_alpha()
+    print(test.molecules[0].conformers[0].q_alpha)
     test.optimize_charges()
     print(test.q)

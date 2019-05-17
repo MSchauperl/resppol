@@ -74,4 +74,19 @@ def test_simple_rotatedz():
     for i, charge in enumerate(test.q[:2]):
         assert charge.magnitude == pytest.approx(test_charges[i], 0.01)
 
+def test_multiple_esps3():
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
+    test = resppol.rpol.TrainingSet()
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field = [0,0,1])
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile,e_field = [0,0,-1])
+    test.optimize_charges()
+    test_charges = [8.633, -8.633]
+    for i, charge in enumerate(test.q[:2]):
+        assert charge.magnitude == pytest.approx(test_charges[i], 0.01)
 

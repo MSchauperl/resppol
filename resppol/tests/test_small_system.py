@@ -3,10 +3,13 @@ import resppol
 from openeye import oechem
 import resppol.rpol
 import os
+from pint import UnitRegistry
 
 ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..')
 
-
+ureg = UnitRegistry()
+Q_ = ureg.Quantity
+ureg.define('bohr = 0.52917721067 * angstrom')
 #######################################################################################
 # The following tests are based on 2 or 3 atoms and can be calculate easily on a piece of paper as well.
 ######################################################################################
@@ -90,3 +93,20 @@ def test_multiple_esps3():
     for i, charge in enumerate(test.q[:2]):
         assert charge.magnitude == pytest.approx(test_charges[i], 0.01)
 
+
+def test_1_confomer_polarization():
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
+    test = resppol.rpol.TrainingSet()
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr'))
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr') )
+    test.optimize_charges_alpha()
+    assert test.q_alpha[0] == pytest.approx(8.6330,0.01)
+    assert test.q_alpha[1] == pytest.approx(-8.6330,0.01)
+    for ele in test.q_alpha[3:9]:
+        assert ele == pytest.approx(3.40, 0.01)

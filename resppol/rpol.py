@@ -1571,12 +1571,12 @@ class ESPGRID:
         f.write(' ESP FILE - ATOMIC UNITS\n')
         f.write(' CHARGE =  {0} - MULTIPLICITY =   1\n'.format(self._conformer._molecule._charge))
         f.write(' ATOMIC COORDINATES AND ESP CHARGES. #ATOMS =     {} \n'.format(np.sum(self.natoms)))
-        for i in range(self.natoms):
+        for i in range(self.conformer._natoms):
             f.write(
                 ' {} {} {} {} {}\n'.format(self.atoms[i], self.atomcrd[i][0], self.atomcrd[i][1], self.atomcrd[i][2],
-                                           self.q_alpha[i]))
+                                           self._conformer._moleccule.q_alpha[i]))
         f.write(' ESP VALUES AND GRID POINT COORDINATES. #POINTS =   {}\n'.format(np.sum(self.npoints)))
-        for i in range(self.npoints):
+        for i in range(len(self.esp_values)):
             f.write(' {} {} {} {}\n'.format(res_pot[i], self.crd[i][0], self.crd[i][1], self.crd[i][2]))
         f.close()
 

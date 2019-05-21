@@ -1,4 +1,4 @@
-# !/usr/bin/env python
+            # !/usr/bin/env python
 
 # =============================================================================================
 # MODULE DOCSTRING
@@ -126,6 +126,22 @@ class TrainingSet():
         self._thole = thole
         self._mode = mode
         self.step = 0
+        self.number_of_lines_in_X = 0
+
+        # Label the atoms and bonds using a offxml file
+        forcefield = ForceField(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/BCCPOL.offxml'))
+
+        self._nalpha = len(forcefield.get_parameter_handler('vdW').parameters)
+        self._nbccs = len(forcefield.get_parameter_handler('Bonds').parameters)
+        self._bccs ={}
+        for i,element in enumerate(forcefield.get_parameter_handler('Bonds').parameters):
+            self._bccs[element.id] = i
+
+
+        self._alpha = {}
+        for i,element in enumerate(forcefield.get_parameter_handler('vdW').parameters):
+            self._alpha[element.id] = i
+
 
     def load_from_file(self,txtfile):
         """
@@ -148,9 +164,15 @@ class TrainingSet():
         :param datei: Mol2 file of a molecule
         :return:
         """
-        self.number_of_lines_in_X = 0
         self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self))
         self.number_of_lines_in_X += self.molecules[-1]._lines_in_X
+
+
+
+
+
+
+
 
     def build_matrix_A(self):
         """
@@ -184,11 +206,11 @@ class TrainingSet():
 
         X12 = np.zeros((len(self.X),len(self.intramolecular_polarization_rst)))
         X22 =  np.zeros((len(self.intramolecular_polarization_rst),len(self.intramolecular_polarization_rst)))
-        for i,atoms in enumerate(self.intramolecular_polarization_rst):
-            X22[i][atoms[0]] = X22[atoms[0]][i] = 1
-            X22[i][atoms[1]] = X22[atoms[1]][i] = -1
 
         self.X = np.concatenate((np.concatenate((self.X, X12), axis=1), np.concatenate((X12.transpose(),X22), axis =1)), axis=0)
+        for i,atoms in enumerate(self.intramolecular_polarization_rst):
+            self.X[self.number_of_lines_in_X + i][atoms[0]] = self.X[atoms[0]][self.number_of_lines_in_X + i] = 1
+            self.X[self.number_of_lines_in_X + i][atoms[1]] = self.X[atoms[1]][self.number_of_lines_in_X + i] = -1
 
     def build_vector_Y(self):
         self.Y = np.zeros(0)
@@ -197,7 +219,7 @@ class TrainingSet():
             self.Y = np.concatenate((self.Y, molecule.Y))
 
         Y2 =  np.zeros(len(self.intramolecular_polarization_rst))
-
+        self.Y = np.concatenate((self.Y, Y2))
     # def get_intramolecular_charge_rst()
 
     @property
@@ -209,13 +231,13 @@ class TrainingSet():
             first_occurrence_of_parameter_in_molecule = {}
             for atom in molecule._atoms:
                 if atom._parameter_id not in first_occurrence_of_parameter.keys():
-                    first_occurrence_of_parameter[atom._parameter_id] = molecule._position_in_A + atom._id
+                    first_occurrence_of_parameter[atom._parameter_id] = molecule._position_in_A + atom._id + molecule._lines_in_A
                 elif atom._parameter_id not in first_occurrence_of_parameter_in_molecule.keys():
                     intramolecular_polarization_rst.append(
-                        [first_occurrence_of_parameter[atom._parameter_id], molecule._position_in_A + atom._id])
+                        [first_occurrence_of_parameter[atom._parameter_id], molecule._position_in_A + atom._id + molecule._lines_in_A])
         return intramolecular_polarization_rst
 
-    def optimize_charges_alpha(self,criteria = 10E-3):
+    def optimize_charges_alpha(self,criteria = 10E-5):
         converged = False
         while converged == False:
             self.optimize_charges_alpha_step()
@@ -331,6 +353,9 @@ class Molecule:
 
         # Label the atoms and bonds using a offxml file
         forcefield = ForceField(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/BCCPOL.offxml'))
+        if trainingset is None:
+            self._trainingset = TrainingSet()
+
 
         # Run the parameter labeling
         molecule_parameter_list = forcefield.label_molecules(self.offtop)
@@ -360,7 +385,9 @@ class Molecule:
         # Initialize and fill scaling matrix
         self.scale = np.ones((self._natoms, self._natoms))
         self.scale_scf = np.ones((self._natoms, self._natoms))
-        self.scaling(scf_scaleparameters=self.scf_scaleparameters)
+        self.scaling(scf_scaleparameters=self.scf_scaleparameters, scaleparameters=self.scaleparameters)
+        self.create_BCCmatrix_T()
+        self.create_POLmatrix_R()
 
         # Initialize conformers
         self.conformers = list()
@@ -371,9 +398,10 @@ class Molecule:
             self.q_old = np.zeros(self._natoms)
         if self._mode == 'q_alpha':
             self._lines_in_X = self._natoms + len(
-                self.chemical_eq_atoms) + 1 + 3 * self._natoms + 2 * self._natoms + len(self.same_polarization_atoms)
+                self.chemical_eq_atoms) + 1 + 3 * self._natoms + 2 * self._natoms
             self.q_old = np.zeros(self._natoms)
             self.alpha_old = np.zeros(3*self._natoms)
+        self._lines_in_A =  self._natoms + len(self.chemical_eq_atoms) + 1
         # Initiliaxe charges
         self.q_alpha = np.zeros(self._lines_in_X)
 
@@ -438,8 +466,54 @@ class Molecule:
             if atom._parameter_id not in first_occurrence.keys():
                 first_occurrence[atom._parameter_id] = atom._id
             else:
-                array_of_same_pol_atoms.append([first_occurrence[atom._parameter_id], atom._id])
+                array_of_same_pol_atoms.append([first_occurrence[atom._parameter_id], atom._id ])
         return (array_of_same_pol_atoms)
+
+
+    def create_BCCmatrix_T(self):
+        """
+        Creates the bond matrix T for a molecule.
+
+        Parameters:
+        ----------
+            bondtyps: list of [int,int]
+                Bonds in the set between different BCC groups
+
+        Attribute:
+        ----------
+            bondmatrix T: 2 dim array
+                1 dim atom
+                2 dim BCC
+        See also AM1-BCC paper:
+        https://onlinelibrary.wiley.com/doi/epdf/10.1002/%28SICI%291096-987X%2820000130%2921%3A2%3C132%3A%3AAID-JCC5%3E3.0.CO%3B2-P
+        """
+        bondsexcluded = []
+        self.T = np.zeros((self._natoms, self._trainingset._nbccs))
+        for bond in self._bonds:
+            if bond._parameter_id not in bondsexcluded:
+                    self.T[bond._atom1][self._trainingset._bccs[bond._parameter_id]] += 1
+                    self.T[bond._atom2][self._trainingset._bccs[bond._parameter_id]] -= 1
+
+    def create_POLmatrix_R(self):
+        """
+        Create a polarization matrix. Defines which atom has which polarizability parameter.
+
+        Parameters:
+        ----------
+        groups: dictionary atomtyp -> int
+            Stores the polarization group  of each atom
+
+        Defines which atom belongs to the which pol group.
+        Takes the list of atomtypes and assign the corresponding group value.
+        Here I am using a slightly different approach in contrast to the atomtyps.
+        as the number of different pol types is maximal the number of atom types. No pre-screening for the involved
+        atom-types is needed
+        """
+        self.R = np.zeros((self._natoms, self._trainingset._nalpha))
+        for atom in self._atoms:
+            self.R[atom._id][self._trainingset._alpha[atom._parameter_id]] += 1
+
+
 
     def build_matrix_A(self):
         for conformer in self.conformers:
@@ -697,7 +771,7 @@ class Conformer:
         # 1 dipole vector of length 3 per atom
         # restrains for isotropic polarization
         # Restaint atoms with same polarization parameters
-        self.Dlines = (3 * self.natoms + 2 * self.natoms + len(self._molecule.same_polarization_atoms))
+        self.Dlines = (3 * self.natoms + 2 * self.natoms) #+ len(self._molecule.same_polarization_atoms))
         self.D = np.zeros((self.Dlines, self.Dlines))
 
         for j in range(self.natoms):
@@ -742,11 +816,11 @@ class Conformer:
 
         self.D = self.D / (len(self.polESPs) + 1)
 
-        for j, atoms in enumerate(self._molecule.same_polarization_atoms):
-            self.D[5 * self.natoms + j][atoms[0]] = 1
-            self.D[5 * self.natoms + j][atoms[1]] = -1
-            self.D[atoms[0]][5 * self.natoms + j] = 1
-            self.D[atoms[1]][5 * self.natoms + j] = -1
+        #for j, atoms in enumerate(self._molecule.same_polarization_atoms):
+        #    self.D[5 * self.natoms + j][atoms[0]] = 1
+        #    self.D[5 * self.natoms + j][atoms[1]] = -1
+        #    self.D[atoms[0]][5 * self.natoms + j] = 1
+        #    self.D[atoms[1]][5 * self.natoms + j] = -1
         # Code to keep polarization parameters at their initial value. Implmentation will change
         # elif self.eqdipoles[j][1] < 0:
         #    self.D[self.ndipoles + self.aniso_lines + j][self.eqdipoles[j][0]] = 1
@@ -818,6 +892,158 @@ class Conformer:
         self.X = np.concatenate(
             (np.concatenate((self.A, self.B), axis=1), np.concatenate((self.C, self.D), axis=1)), axis=0)
 
+
+    # Combines BCC and polarizabilities
+    def build_matrix_X_BCC(self):
+        """
+        Creates the Matrix A for the BCC-POL approach:
+
+        :param mol2: molecule class object
+
+        :return:
+
+        The math and the optimization method is explained in the current paper draft.
+        """
+        nbcc = self._molecule._trainingset._nbccs
+        nalpha = self._molecule._trainingset._nalpha
+        T = self._molecule.T
+        R = self._molecule.R
+        self.get_electric_field()
+        # BCC part
+        self.A = np.zeros((nbcc, nbcc))
+        if self._molecule._mode == 'alpha':  # Do not optimize BCCs in that case
+            for alpha in range(nbcc):
+                self.A[alpha][alpha] = 1
+        else:
+            for ESP in [self.baseESP] + self.polESPs:
+                for j in range(self.natoms):
+                    for k in range(self.natoms):
+                        for alpha in range(nbcc):
+                            for beta in range(nbcc):
+                                self.A[alpha][beta] += T[j][alpha] * T[k][beta] * np.dot(self.dist[j],
+                                                                                               self.dist[k])
+        # Polarizabilities part
+        self.D = np.zeros((nalpha, nalpha))
+        if self._molecule._mode != 'bcconly':  # Mode is not optimizing polarizabilies
+            for ESP in [self.baseESP] + self.polESPs:
+                for j in range(self.natoms):
+                    for k in range(self.natoms):
+                        for alpha in range(nalpha):
+                            for beta in range(nalpha):
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_x[j], self.dist_x[k]), ESP.e_field_at_atom[0][j] * ESP.e_field_at_atom[0][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_x[j], self.dist_y[k]), ESP.e_field_at_atom[0][j] * ESP.e_field_at_atom[1][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_x[j], self.dist_z[k]), ESP.e_field_at_atom[0][j] * ESP.e_field_at_atom[2][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_y[j], self.dist_x[k]), ESP.e_field_at_atom[1][j] * ESP.e_field_at_atom[0][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_y[j], self.dist_y[k]), ESP.e_field_at_atom[1][j] * ESP.e_field_at_atom[1][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_y[j], self.dist_z[k]), ESP.e_field_at_atom[1][j] * ESP.e_field_at_atom[2][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_z[j], self.dist_x[k]), ESP.e_field_at_atom[2][j] * ESP.e_field_at_atom[0][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_z[j], self.dist_y[k]), ESP.e_field_at_atom[2][j] * ESP.e_field_at_atom[1][k])
+                                self.D[alpha][beta] += R[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist_z[j], self.dist_z[k]), ESP.e_field_at_atom[2][j] * ESP.e_field_at_atom[2][k])
+        else:
+            for alpha in range(nalpha):
+                self.D[alpha][alpha] = 1
+
+        # Cross interaction between BCC charges and polarizations
+        self.B = np.zeros((nbcc, nalpha))
+        self.C = np.zeros((nalpha, nbcc))
+        if self._molecule._mode != 'alpha':
+            for ESP in [self.baseESP] + self.polESPs:
+                for j in range(self.natoms):
+                    for k in range(self.natoms):
+                        for alpha in range(nbcc):
+                            for beta in range(nalpha):
+                                self.B[alpha][beta] += T[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist[j], self.dist_x[k]), ESP.e_field_at_atom[0][k])
+                                self.B[alpha][beta] += T[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist[j], self.dist_y[k]), ESP.e_field_at_atom[1][k])
+                                self.B[alpha][beta] += T[j][alpha] * R[k][beta] * np.multiply(
+                                    np.dot(self.dist[j], self.dist_z[k]), ESP.e_field_at_atom[2][k])
+        if self._molecule._mode != 'bcconly':
+            for ESP in [self.baseESP] + self.polESPs:
+                for j in range(self.natoms):
+                    for k in range(self.natoms):
+                        for alpha in range(nalpha):
+                            for beta in range(nbcc):
+                                self.C[alpha][beta] += R[j][alpha] * T[k][beta] * np.multiply(
+                                    np.dot(self.dist[k], self.dist_x[j]), ESP.e_field_at_atom[0][j])
+                                self.C[alpha][beta] += R[j][alpha] * T[k][beta] * np.multiply(
+                                    np.dot(self.dist[k], self.dist_y[j]), ESP.e_field_at_atom[1][j])
+                                self.C[alpha][beta] += R[j][alpha] * T[k][beta] * np.multiply(
+                                    np.dot(self.dist[k], self.dist_z[j]), ESP.e_field_at_atom[2][j])
+
+        # Restraints for polarizaton
+        #if hasattr(self, 'wrst1'):
+        #    for alpha in range(nalpha):
+        #        self.D[alpha][alpha] += mol2.group_pop[alpha] * self.wrst1 * self.dipscale / np.sqrt(
+        #           np.square(self.qd[nbcc + alpha]) + 0.01)
+
+        # No implementation of bcc restraints.
+
+
+        #Combine all matrices
+        self.X = np.concatenate((np.concatenate((self.A, self.B), axis=1), np.concatenate((self.C, self.D), axis=1)),
+                                axis=0)
+
+
+        """
+        X12= np.zeros((len(self.X), len(self._molecule.same_polarization_atoms)))
+        X22 = np.zeros((len(self._molecule.same_polarization_atoms),len(self._molecule.same_polarization_atoms)))
+        self.X = np.concatenate((np.concatenate((self.X, X12), axis=1), np.concatenate((X12.transpose, X22), axis=1)),axis=0)
+        
+        
+        for j, atoms in enumerate(self._molecule.same_polarization_atoms):
+            self.X[5 * self.natoms + j] = 0.0
+
+        """
+    def build_vector_Y_BCC(self):
+        """
+        Creates vector Y for the BCC Pol method
+
+        :param mol2: molecule object
+
+        :return:
+        """
+
+        nbcc = self._molecule._trainingset._nbccs
+        nalpha = self._molecule._trainingset._nalpha
+        T = self._molecule.T
+        R = self._molecule.R
+
+        # Vector belonging to the BCCs
+        self.Y1 = np.zeros(nbcc)
+        if self._molecule._mode != 'alpha':
+            for ESP in [self.baseESP] + self.polESPs:
+                esp_values = ESP.esp_values.to('elementary_charge / angstrom').magnitude
+                for beta in range(nbcc):
+                    for k in range(self.natoms):
+                        self.Y1[beta] += T[k][beta] * np.dot(esp_values, self.dist[k])
+        else:
+            self.Y1 = self.qbond
+
+        # Vector belonging to the polarizabilities
+        self.Y2 = np.zeros(nalpha)
+        if self._molecule._mode != 'bcconly':
+            for ESP in [self.baseESP] + self.polESPs:
+                esp_values = ESP.esp_values.to('elementary_charge / angstrom').magnitude
+                for beta in range(nalpha):
+                    for k in range(self.natoms):
+                        self.Y2[beta] += R[k][beta] * np.multiply(np.dot(esp_values, self.dist_x[k]), ESP.e_field_at_atom[0][k])
+                        self.Y2[beta] += R[k][beta] * np.multiply(np.dot(esp_values, self.dist_y[k]), ESP.e_field_at_atom[1][k])
+                        self.Y2[beta] += R[k][beta] * np.multiply(np.dot(esp_values, self.dist_z[k]), ESP.e_field_at_atom[2][k])
+
+
+        self.Y = np.concatenate((self.Y1, self.Y2))
+
+
     # noinspection PyProtectedMember
     def build_vector_B(self):
         """
@@ -870,8 +1096,8 @@ class Conformer:
 
         self.C = self.C / (len(self.polESPs) + 1)
 
-        for j, atoms in enumerate(self._molecule.same_polarization_atoms):
-            self.C[5 * self.natoms + j] = 0.0
+        #for j, atoms in enumerate(self._molecule.same_polarization_atoms):
+        #    self.C[5 * self.natoms + j] = 0.0
 
     def build_vector_Y(self):
         """
@@ -897,8 +1123,21 @@ class Conformer:
         self.build_vector_Y()
         self.q_alpha = np.linalg.solve(self.X, self.Y)
 
-    def build_matrix_Abcc(self):
-        self.get_distances()
+    def optimize_charges_alpha_bcc(self):
+        """
+        Builds the necessary matrix and vector and performs a charge and polarizabilities optimization for this 1 conformation.
+        :return:
+        """
+        self.build_matrix_X_BCC()
+        self.build_vector_Y_BCC()
+        # Check if bccs or alphas are not in the training set and set them to zero
+        for i,row in enumerate(self.X):
+            if all(row == 0.0):
+                self.X[i][i]=1
+
+
+        self.q_alpha = np.linalg.solve(self.X, self.Y)
+
 
     def get_distances(self):
         self.get_grid_coord()
@@ -1079,12 +1318,12 @@ class ESPGRID:
                 'elementary_charge / angstrom / angstrom').magnitude
 
         self.e = self.e_field_at_atom.flatten()
-
+        #print(self.e)
         if self._conformer._molecule._SCF and self._conformer._molecule.step > 0:
             if not hasattr(self, 'Bdip') or self._conformer._molecule._thole:
                 if self._conformer._molecule._thole:
-                    # thole_param=1.368711/BOHR**2
-                    thole_param = 0.390
+                    thole_param=1.368711
+                    #thole_param = 0.390
                     dipole_tmp = np.where(alpha < 0.0, -alpha, alpha)
                     thole_v = np.multiply(self.adist, np.float_power(
                         np.multiply(dipole_tmp[:self._conformer.natoms, None], dipole_tmp[:self._conformer.natoms]),
@@ -1165,6 +1404,7 @@ class ESPGRID:
                 Bdip[j][j] = 1. / alpha[j]
             dipole_scf = np.linalg.solve(Bdip, self.e)
             self.e = np.divide(dipole_scf, alpha)
+            print(self.e)
         self.e_field_at_atom[0] = 1.0 * self.e[:self._conformer.natoms]
         self.e_field_at_atom[1] = 1.0 * self.e[self._conformer.natoms:2 * self._conformer.natoms]
         self.e_field_at_atom[2] = 1.0 * self.e[2 * self._conformer.natoms:3 * self._conformer.natoms]
@@ -1254,29 +1494,41 @@ if __name__ == '__main__':
     print('FINISH')
     """
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = TrainingSet()
+    #test = TrainingSet(mode='q_alpha',SCF= False, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
+    test = TrainingSet(mode='q_alpha')
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    #test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    #test.molecules[0].conformers[1].add_baseESP(espfile)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, 1.], 'elementary_charge / bohr / bohr'))
+    #test.molecules[0].conformers[1].add_polESP(espfile, e_field=Q_([0.0, 0.0, 0.8],'elementary_charge / bohr / bohr'))
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.], 'elementary_charge / bohr / bohr') )
+    #test.molecules[0].conformers[1].add_polESP(espfile, e_field=Q_([0.0, 0.0, -0.8], 'elementary_charge / bohr / bohr') )
+    test.build_matrix_X()
+    test.build_vector_Y()
+    test.molecules[0].conformers[0].build_matrix_X_BCC()
+    test.molecules[0].conformers[0].build_vector_Y_BCC()
+    test.molecules[0].conformers[0].optimize_charges_alpha_bcc()
+    print(test.molecules[0].conformers[0].q_alpha)
+    test.optimize_charges_alpha()
+    print(test.q_alpha)
+    print(test.molecules[0].conformers[0].baseESP.e_field_at_atom)
+    print(test.molecules[0].conformers[0].polESPs[0].e_field_at_atom)
+    """
+
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1.mol2')
+    test = TrainingSet(mode='q_alpha',)
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1.gesp')
     test.molecules[0].conformers[0].add_baseESP(espfile)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1_Z+.gesp')
-    test.molecules[0].conformers[0].add_polESP(espfile, e_field=[0, 0, 1])
-    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1_Z-.gesp')
-    test.molecules[0].conformers[0].add_polESP(espfile, e_field=[0, 0, -1])
-    test.optimize_charges()
-    print(test.q)
-    datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2_nobond.mol2')
-    test = TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
-    test.add_molecule(datei)
-    test.molecules[0].add_conformer_from_mol2(datei)
-    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
-    test.molecules[0].conformers[0].add_baseESP(espfile)
-    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
     test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr'))
-    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
-    # test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr') )
-    test.build_matrix_X()
-    test.build_vector_Y()
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1_Z-.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr') )
     test.optimize_charges_alpha()
-    print(test.q_alpha)
-    print(test.molecules[0].conformers[0].q_alpha)
+    """

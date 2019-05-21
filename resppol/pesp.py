@@ -264,8 +264,9 @@ else:
     exit()
 
 # Reads in intramolecular restraints
-eqdipoles, eqatoms = read_groups_intra(groups, len(ngesp))
-
+#eqdipoles, eqatoms = read_groups_intra(groups, len(ngesp))
+eqdipoles = [[]]
+eqatoms = [[]]
 # Load gesp files into esp objects
 bases = [[] for i in range(len(base))]
 esps = [[] for i in range(len(ngesp))]

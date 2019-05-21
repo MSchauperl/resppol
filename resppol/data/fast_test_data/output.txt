@@ -1,0 +1,5 @@
+2019-05-20 10:58:49.093000
+../../pesp.py -ngesp test1.ngesp -nmol2 test1.nmol -mode qd -out output.txt -groups rest.txt 
+0	4.0	9.860761315262648e-32
+SUM	4.0	9.860761315262648e-32
+Polarizabilities:

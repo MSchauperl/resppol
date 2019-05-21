@@ -4,7 +4,7 @@ Test of the charge fitting process
 
 import pytest
 import resppol
-import resppol.rpol
+import resppol.resppol
 import os
 
 ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..')
@@ -17,7 +17,7 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 
 # @pytest.mark.slow
 def test_charge_fitting_1_conformer():
-    test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+    test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
     test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
     test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.gesp'))
     test.optimize_charges()

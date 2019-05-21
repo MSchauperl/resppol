@@ -1,6 +1,6 @@
 import pytest
 import resppol
-import resppol.rpol
+import resppol.resppol
 import os
 from pint import UnitRegistry
 
@@ -16,7 +16,7 @@ ureg.define('bohr = 0.52917721067 * angstrom')
 
 def test_simple_charges():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1.gesp')
@@ -28,7 +28,7 @@ def test_simple_charges():
 
 def test_simple_charges2():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
@@ -40,7 +40,7 @@ def test_simple_charges2():
 
 def test_simple_rotatedx():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2_rotatedx.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test5.gesp')
@@ -54,7 +54,7 @@ def test_simple_rotatedx():
 
 def test_simple_rotatedx2():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2_rotatedx.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test4.gesp')
@@ -66,7 +66,7 @@ def test_simple_rotatedx2():
 
 def test_simple_rotatedz():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2_rotatedz.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test6.gesp')
@@ -78,7 +78,7 @@ def test_simple_rotatedz():
 
 def test_multiple_esps3():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
@@ -95,7 +95,7 @@ def test_multiple_esps3():
 
 def test_1_confomer_polarization():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
@@ -114,7 +114,7 @@ def test_1_confomer_polarization():
 
 def test_intermolecular_pol_rst():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1.mol2')
-    test = resppol.rpol.TrainingSet(mode='q_alpha')
+    test = resppol.resppol.TrainingSet(mode='q_alpha')
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1.gesp')
@@ -135,7 +135,7 @@ def test_intermolecular_pol_rst():
 
 def test_1_confomer_efield():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet(scaleparameters=[1,1,1])
+    test = resppol.resppol.TrainingSet(scaleparameters=[1,1,1])
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
@@ -152,7 +152,7 @@ def test_1_confomer_efield():
 
 def test_1_confomer_polarization_SCF():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
+    test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
@@ -174,7 +174,7 @@ def test_1_confomer_polarization_SCF():
 
 def test_2_molecules_polarization_SCF():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
+    test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
     test.add_molecule(datei)
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
@@ -210,7 +210,7 @@ def test_2_molecules_polarization_SCF():
 
 def test_1_confomer_polarization_SCF_rotx():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2_rotatedz.mol2')
-    test = resppol.rpol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
+    test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test6.gesp')
@@ -229,7 +229,7 @@ def test_1_confomer_polarization_SCF_rotx():
 
 def test_1_confomer_polarization_SCF_rotxz():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2_rotatedx.mol2')
-    test = resppol.rpol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
+    test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test4.gesp')
@@ -248,7 +248,7 @@ def test_1_confomer_polarization_SCF_rotxz():
 
 def test_2_molecules_bcc_pol_SCF():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
+    test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
     test.add_molecule(datei)
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
@@ -281,7 +281,7 @@ def test_2_molecules_bcc_pol_SCF():
 
 def test_2_molecules_bcc_pol():
         datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-        test = resppol.rpol.TrainingSet(mode='q_alpha')
+        test = resppol.resppol.TrainingSet(mode='q_alpha')
         test.add_molecule(datei)
         test.add_molecule(datei)
         test.molecules[0].add_conformer_from_mol2(datei)
@@ -315,7 +315,7 @@ def test_2_molecules_bcc_pol():
 
 def test_2_molecules_polarization_thole():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
-    test = resppol.rpol.TrainingSet(mode='q_alpha',SCF= True, thole = True)
+    test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, thole = True)
     test.add_molecule(datei)
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)

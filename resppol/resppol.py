@@ -1638,6 +1638,7 @@ class BCCPolESP(ESPGRID):
 
 
 if __name__ == '__main__':
+    pass
     """
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
     test = TrainingSet(scf_scaleparameters=[0.0, 0.0, 0.5])
@@ -1685,7 +1686,7 @@ if __name__ == '__main__':
     #print(test.q_alpha)
     print(test.molecules[0].conformers[0].baseESP.e_field_at_atom)
     print(test.molecules[0].conformers[0].polESPs[0].e_field_at_atom)
-    """
+    
 
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
     test = TrainingSet(mode='q_alpha',SCF= True, thole = True)
@@ -1704,3 +1705,4 @@ if __name__ == '__main__':
     print(test.molecules[0].conformers[0].baseESP.q_pot)
 
     print(test.molecules[0].conformers[0].q_alpha)
+    """

@@ -5,7 +5,7 @@ Test of the charge fitting process
 import pytest
 import resppol
 from openeye import oechem
-import resppol.rpol
+import resppol.resppol
 import os
 
 ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..')
@@ -19,7 +19,7 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 @pytest.mark.slow
 def test_trainingset_1_molecule():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/molecule0.gesp')
@@ -35,7 +35,7 @@ def test_trainingset_1_molecule():
 @pytest.mark.slow
 def test_trainingset_2_moleculse():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = resppol.rpol.TrainingSet()
+    test = resppol.resppol.TrainingSet()
     test.add_molecule(datei)
     test.molecules[0].add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/molecule0.gesp')
@@ -57,7 +57,7 @@ def test_trainingset_2_moleculse():
 
 
 def test_charge_fitting_1_conformer():
-    test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+    test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
     test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
     test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.gesp'))
     test.optimize_charges()
@@ -69,7 +69,7 @@ def test_charge_fitting_1_conformer():
 
 
 def test_same_polarization_atoms():
-    test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+    test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
     test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
     testvar = test.same_polarization_atoms
     same_pol_atoms = [[0, 1], [0, 2], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9], [4, 10]]
@@ -78,7 +78,7 @@ def test_same_polarization_atoms():
 
 
 def test_scaling_matrix():
-    test = resppol.rpol.TrainingSet(scf_scaleparameters=[0.0,0.0,0.5])
+    test = resppol.resppol.TrainingSet(scf_scaleparameters=[0.0,0.0,0.5])
     test.add_molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
     test.molecules[0].add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
     testvar = test.molecules[0].scale[6]
@@ -91,7 +91,7 @@ def test_scaling_matrix():
         assert testvar_scf[i] == pytest.approx(scaleMatrix_scf[i], 0.001)
 
 def test_scaling_matrix2():
-    test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
+    test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
     test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
     testvar = test.scale[6]
     scaleMatrix = [1., 0.83333333, 0.83333333, 0., 0., 0., 0., 1., 1., 1., 0.83333333, 0.83333333, 0.]
@@ -103,7 +103,7 @@ def test_scaling_matrix2():
 @pytest.mark.slow
 def test_charge_fitting_1_conformer_resppol():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = resppol.rpol.Molecule(datei)
+    test = resppol.resppol.Molecule(datei)
     test.add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/grid.espf')
     test.conformers[0].add_baseESP(espfile)
@@ -118,7 +118,7 @@ def test_charge_fitting_1_conformer_resppol():
 @pytest.mark.slow
 def test_charge_fitting_1_conformer_psi4():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
-    test = resppol.rpol.Molecule(datei)
+    test = resppol.resppol.Molecule(datei)
     test.add_conformer_from_mol2(datei)
     espfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/grid_esp.dat')
     gridfile = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/grid.dat')
@@ -133,7 +133,7 @@ def test_charge_fitting_1_conformer_psi4():
 
 @pytest.mark.slow
 def test_charge_fitting_2_conformers():
-    test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
+    test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
     test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
     test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf1/mp2_1.mol2'))
     test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/molecule0.gesp'))
@@ -150,22 +150,22 @@ def test_charge_fitting_2_conformers():
 # @pytest.mark.slow
 def test_load_wrong_conformer():
     with pytest.raises(Exception):
-        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+        test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
 
 
 # @pytest.mark.slow
 def test_load_wrong_esp():
     with pytest.raises(Exception):
-        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
+        test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
         test.conformers[0].add_baseESP(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/molecule0.gesp'))
 
 def test_load_wrong_mol2():
     with pytest.raises(Exception):
-        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/no_molecule.mol2'))
+        test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/no_molecule.mol2'))
 
 
 def test_warning_amberatomtype():
     with pytest.raises(Warning):
-        test = resppol.rpol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_amber_atomtype.mol2'))
+        test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_amber_atomtype.mol2'))

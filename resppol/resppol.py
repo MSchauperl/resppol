@@ -1601,7 +1601,10 @@ class ESPGRID:
                                            self._conformer._molecule.q_alpha[i]))
         f.write(' ESP VALUES AND GRID POINT COORDINATES. #POINTS =   {}\n'.format(len(self.esp_values)))
         for i in range(len(self.esp_values)):
-            f.write(' {} {} {} {}\n'.format(res_pot[i].magnitude, self.positions[i][0].magnitude, self.positions[i][1].magnitude, self.positions[i][2].magnitude))
+            try:
+                f.write(' {} {} {} {}\n'.format(res_pot[i].magnitude, self.positions[i][0].magnitude, self.positions[i][1].magnitude, self.positions[i][2].magnitude))
+            except: # Difference between python 3.6 and 3.7
+                f.write(' {} {} {} {}\n'.format(res_pot[i], self.positions[i][0].magnitude, self.positions[i][1].magnitude, self.positions[i][2].magnitude))
         f.close()
 
 # =============================================================================================

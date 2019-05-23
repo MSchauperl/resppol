@@ -1589,7 +1589,7 @@ class ESPGRID:
         :return:
         """
         self.calc_esp_q_alpha(q_alpha)
-        res_pot = np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, Q_(self.q_pot, 'elementary_charge / angstrom')).to('elementary_charge / bohr')
+        res_pot = np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, Q_(self.q_pot, 'elementary_charge / angstrom'))
         #res_pot = (self.esp_values - self.q_pot)#.to('elementary_charge / bohr').magnitude
         f = open(self.name + '.rgesp', 'w')
         f.write(' ESP FILE - ATOMIC UNITS\n')

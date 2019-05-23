@@ -345,3 +345,22 @@ def test_2_molecules_polarization_thole():
 
     # Check e field
     assert test.molecules[0].conformers[0].polESPs[0].e_field_at_atom[1][0] == pytest.approx(-0.0, 0.01)
+
+
+def test_calc_esp_and_write_esp():
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
+    test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, thole = True)
+    test.add_molecule(datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr'))
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile, e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr') )
+    test.optimize_charges_alpha()
+    test.molecules[0].conformers[0].baseESP.calc_esp_q_alpha(test.q_alpha)
+    test.molecules[0].conformers[0].baseESP.calc_sse(test.q_alpha)
+    test.molecules[0].conformers[0].baseESP.sub_esp_q_alpha(test.q_alpha)
+    test.molecules[0].conformers[0].write_res_esp()
+    assert test.molecules[0].conformers[0].baseESP.q_pot[8] == pytest.approx(2.1752, 0.01)

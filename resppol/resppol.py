@@ -1589,7 +1589,7 @@ class ESPGRID:
         :return:
         """
         self.calc_esp_q_alpha(q_alpha)
-        res_pot = np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, self.q_pot)
+        res_pot = np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, Q_(self.q_pot, 'elementary_charge / angstrom')).to('elementary_charge / bohr')
         #res_pot = (self.esp_values - self.q_pot)#.to('elementary_charge / bohr').magnitude
         f = open(self.name + '.rgesp', 'w')
         f.write(' ESP FILE - ATOMIC UNITS\n')
@@ -1601,7 +1601,7 @@ class ESPGRID:
                                            self._conformer._molecule.q_alpha[i]))
         f.write(' ESP VALUES AND GRID POINT COORDINATES. #POINTS =   {}\n'.format(len(self.esp_values)))
         for i in range(len(self.esp_values)):
-            f.write(' {} {} {} {}\n'.format(res_pot[i], self.positions[i][0], self.positions[i][1], self.positions[i][2]))
+            f.write(' {} {} {} {}\n'.format(res_pot[i].magnitude, self.positions[i][0].magnitude, self.positions[i][1].magnitude, self.positions[i][2].magnitude))
         f.close()
 
 # =============================================================================================
@@ -1660,10 +1660,10 @@ class BCCPolESP(ESPGRID):
 
         self.e_field_at_atom = np.zeros((3, self._conformer.natoms))
 
-
+"""
 if __name__ == '__main__':
     pass
-    """
+    
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
     test = TrainingSet(scf_scaleparameters=[0.0, 0.0, 0.5])
     test.add_molecule(datei)
@@ -1710,7 +1710,7 @@ if __name__ == '__main__':
     #print(test.q_alpha)
     print(test.molecules[0].conformers[0].baseESP.e_field_at_atom)
     print(test.molecules[0].conformers[0].polESPs[0].e_field_at_atom)
-    """
+    
 
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
     test = TrainingSet(mode='q_alpha',SCF= True, thole = True)
@@ -1730,3 +1730,4 @@ if __name__ == '__main__':
     print(test.molecules[0].conformers[0].baseESP.q_pot)
 
     print(test.molecules[0].conformers[0].q_alpha)
+    """

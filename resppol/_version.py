@@ -511,7 +511,7 @@ def get_versions():
         pass
 
     try:
-        if cfg.parentdir_prefix:
+        if cfg.parentdir_prefix: #lgtm [py/unused-loop-variable]
             return versions_from_parentdir(cfg.parentdir_prefix, root, verbose)
     except NotThisMethod:
         pass

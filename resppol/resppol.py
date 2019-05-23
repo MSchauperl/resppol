@@ -152,7 +152,7 @@ class TrainingSet():
 
         :return:
         """
-        f = open(datei)
+        f = open(txtfile)
         lines = f.readlines()
         f.close()
         for i, line in enumerate(lines):
@@ -1000,7 +1000,7 @@ class Conformer:
             for alpha in range(nbcc):
                 self.A[alpha][alpha] = 1
         else:
-            for ESP in [self.baseESP] + self.polESPs:
+            for ESP in [self.baseESP] + self.polESPs: #lgtm [py/unused-loop-variable]
                 for j in range(self.natoms):
                     for k in range(self.natoms):
                         for alpha in range(nbcc):
@@ -1636,10 +1636,10 @@ class BCCPolESP(ESPGRID):
 
         self.e_field_at_atom = np.zeros((3, self._conformer.natoms))
 
-
+"""
 if __name__ == '__main__':
     pass
-    """
+    
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
     test = TrainingSet(scf_scaleparameters=[0.0, 0.0, 0.5])
     test.add_molecule(datei)

@@ -8,7 +8,7 @@ A tool for electrostatic fitting including polarization
 from __future__ import absolute_import
 
 # Add imports here
-import resppol.resppol
+#import .resppol
 
 # Handle versioneer
 from ._version import get_versions

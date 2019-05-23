@@ -397,7 +397,10 @@ class Molecule:
             raise Exception('Molecule either not found or does not have a 3D structure')
 
         # Check for strange atoms
+        AtomicNumbers = []
         for atom in self.oemol.GetAtoms():
+            AtomicNumbers.append(atom.GetAtomicNum())
+
             if atom.GetAtomicNum() not in biological_elements:
                 log.warning("""I detect an atom with atomic number: {}
                 Are you sure you want to include such an atom in your dataset?
@@ -437,7 +440,7 @@ class Molecule:
         # Define all atomtypes for polarization
         for i, properties in enumerate(molecule_parameter_list[0]['vdW'].items()):
             atom_index, parameter = properties
-            self.add_atom(i, atom_index, parameter.id)
+            self.add_atom(i, atom_index[0], parameter.id, atomic_number = AtomicNumbers[atom_index[0]])
 
         self._natoms = len(self._atoms)
 
@@ -477,7 +480,7 @@ class Molecule:
         atom_index2 = atom_indices[1]
         self._bonds.append(Bond(index, atom_index1, atom_index2, parameter_id))
 
-    def add_atom(self, index, atom_index, parameter_id):
+    def add_atom(self, index, atom_index, parameter_id, atomic_number=0):
         """
         Adds a atom object to the molecule
 
@@ -486,7 +489,7 @@ class Molecule:
         :param parameter_id:
         :return:
         """
-        self._atoms.append(Atom(index, atom_index[0], parameter_id))
+        self._atoms.append(Atom(index, atom_index, parameter_id, atomic_number= atomic_number))
 
     def add_conformer_from_mol2(self, mol2file):
         """
@@ -728,10 +731,11 @@ class Atom:
 
     """
 
-    def __init__(self, index, atom_index, parameter_id):
+    def __init__(self, index, atom_index, parameter_id, atomic_number = 0):
         self._id = index
         self._atom = atom_index
         self._parameter_id = parameter_id
+        self._atomic_number = atomic_number
 
 
 # =============================================================================================
@@ -1000,13 +1004,14 @@ class Conformer:
             for alpha in range(nbcc):
                 self.A[alpha][alpha] = 1
         else:
-            for ESP in [self.baseESP] + self.polESPs: #lgtm [py/unused-loop-variable]
-                for j in range(self.natoms):
+            #for ESP in [self.baseESP] + self.polESPs: #lgtm [py/unused-loop-variable]
+            for j in range(self.natoms):
                     for k in range(self.natoms):
                         for alpha in range(nbcc):
                             for beta in range(nbcc):
                                 self.A[alpha][beta] += T[j][alpha] * T[k][beta] * np.dot(self.dist[j],
                                                                                                self.dist[k])
+            self.A = self.A *(len(self.polESPs)+1)
         # Polarizabilities part
         self.D = np.zeros((nalpha, nalpha))
         if self._molecule._mode != 'bcconly':  # Mode is not optimizing polarizabilies
@@ -1301,6 +1306,24 @@ class Conformer:
         del self.diatomic_distb_y
         del self.diatomic_distb_z
 
+    def write_res_esp(self, q_alpha= None ):
+        """
+        NOT FINISHED YET!!!
+
+        Writes the residual ESP to a file.
+
+        :param qd: list of float
+            Point charges and polarizabilities
+        :return:
+        """
+        if q_alpha is None:
+            q_alpha = self.q_alpha
+        atoms = []
+        for i,atom in enumerate(self.atom_positions.to('bohr').magnitude):
+            atoms.append([self._molecule._atoms[i]._atomic_number,atom])
+
+        for ESP in [self.baseESP] + self.polESPs:
+            ESP.write_res_esp(q_alpha, atoms= atoms)
 
 # =============================================================================================
 # ESPGRID
@@ -1543,7 +1566,7 @@ class ESPGRID:
         """
         if self._conformer._molecule._mode != 'alpha':  # Change that in bcc that this line is unnecessary
             self.calc_esp_q_alpha(q_alpha)
-            self.esp_values = np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, self.q_pot)
+            self.esp_values = Q_(np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, self.q_pot),'elementary_charge / angstrom')
 
     def calc_sse(self, q_alpha):
         """
@@ -1555,7 +1578,7 @@ class ESPGRID:
         self.calc_esp_q_alpha(q_alpha)
         self.sse = np.square(self.esp_values.to('elementary_charge / angstrom').magnitude - self.q_pot).sum()
 
-    def write_res_esp(self, q_alpha):
+    def write_res_esp(self, q_alpha, atoms = []):
         """
         NOT FINISHED YET!!!
 
@@ -1566,18 +1589,19 @@ class ESPGRID:
         :return:
         """
         self.calc_esp_q_alpha(q_alpha)
-        res_pot = self.esp_values - self.q_pot
+        res_pot = np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, self.q_pot)
+        #res_pot = (self.esp_values - self.q_pot)#.to('elementary_charge / bohr').magnitude
         f = open(self.name + '.rgesp', 'w')
         f.write(' ESP FILE - ATOMIC UNITS\n')
         f.write(' CHARGE =  {0} - MULTIPLICITY =   1\n'.format(self._conformer._molecule._charge))
         f.write(' ATOMIC COORDINATES AND ESP CHARGES. #ATOMS =     {} \n'.format(np.sum(self.natoms)))
-        for i in range(self.conformer._natoms):
+        for i in range(self._conformer.natoms):
             f.write(
-                ' {} {} {} {} {}\n'.format(self.atoms[i], self.atomcrd[i][0], self.atomcrd[i][1], self.atomcrd[i][2],
-                                           self._conformer._moleccule.q_alpha[i]))
-        f.write(' ESP VALUES AND GRID POINT COORDINATES. #POINTS =   {}\n'.format(np.sum(self.npoints)))
+                ' {} {} {} {} {}\n'.format(atoms[i][0], atoms[i][1][0], atoms[i][1][1], atoms[i][1][2],
+                                           self._conformer._molecule.q_alpha[i]))
+        f.write(' ESP VALUES AND GRID POINT COORDINATES. #POINTS =   {}\n'.format(len(self.esp_values)))
         for i in range(len(self.esp_values)):
-            f.write(' {} {} {} {}\n'.format(res_pot[i], self.crd[i][0], self.crd[i][1], self.crd[i][2]))
+            f.write(' {} {} {} {}\n'.format(res_pot[i], self.positions[i][0], self.positions[i][1], self.positions[i][2]))
         f.close()
 
 # =============================================================================================
@@ -1636,10 +1660,10 @@ class BCCPolESP(ESPGRID):
 
         self.e_field_at_atom = np.zeros((3, self._conformer.natoms))
 
-"""
+
 if __name__ == '__main__':
     pass
-    
+    """
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
     test = TrainingSet(scf_scaleparameters=[0.0, 0.0, 0.5])
     test.add_molecule(datei)
@@ -1686,7 +1710,7 @@ if __name__ == '__main__':
     #print(test.q_alpha)
     print(test.molecules[0].conformers[0].baseESP.e_field_at_atom)
     print(test.molecules[0].conformers[0].polESPs[0].e_field_at_atom)
-    
+    """
 
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
     test = TrainingSet(mode='q_alpha',SCF= True, thole = True)
@@ -1702,7 +1726,7 @@ if __name__ == '__main__':
     test.molecules[0].conformers[0].baseESP.calc_esp_q_alpha(test.q_alpha)
     test.molecules[0].conformers[0].baseESP.calc_sse(test.q_alpha)
     test.molecules[0].conformers[0].baseESP.sub_esp_q_alpha(test.q_alpha)
+    test.molecules[0].conformers[0].write_res_esp()
     print(test.molecules[0].conformers[0].baseESP.q_pot)
 
     print(test.molecules[0].conformers[0].q_alpha)
-    """

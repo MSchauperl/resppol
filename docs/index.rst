@@ -17,7 +17,7 @@ The rpol module
 Primary objects
 ---------------
 
-.. automodule:: rpol
+.. automodule:: resppol
 
 The TrainingSet class
 ---------------------

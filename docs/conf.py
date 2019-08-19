@@ -16,7 +16,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 
-
+import resppol
 # -- Project information -----------------------------------------------------
 
 project = 'A tool for electrostatic fitting including polarization'

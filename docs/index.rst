@@ -18,6 +18,7 @@ Primary objects
 ---------------
 
 .. automodule:: resppol.resppol
+   :members:
 
 The TrainingSet class
 ---------------------

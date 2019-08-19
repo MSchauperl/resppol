@@ -17,7 +17,7 @@ The rpol module
 Primary objects
 ---------------
 
-.. automodule:: resppol
+.. automodule:: resppol.resppol
 
 The TrainingSet class
 ---------------------
@@ -25,12 +25,6 @@ The TrainingSet class
 .. autoclass:: TrainingSet
    :members:
 
-
-Secondary object
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
 
 

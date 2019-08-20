@@ -1,4 +1,4 @@
-            # !/usr/bin/env python
+# !/usr/bin/env python
 
 # =============================================================================================
 # MODULE DOCSTRING
@@ -17,9 +17,15 @@ This module should convert a mol2 file int a Molecule object and expose all nece
 
 import logging as log
 import numpy as np
-from openeye import oechem
-import openforcefield.topology as openff
-from openforcefield.typing.engines.smirnoff import ForceField
+try:
+	from openeye import oechem
+except:
+	print('Could not import openeye')
+try:
+	import openforcefield.topology as openff
+	from openforcefield.typing.engines.smirnoff import ForceField
+except:
+	print("Could not import openforcefield")
 from scipy.spatial import distance
 import os
 # Initialize units

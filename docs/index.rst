@@ -23,10 +23,6 @@ Primary objects
 The TrainingSet class
 ---------------------
 
-.. autoclass:: TrainingSet
-   :members:
-
-
 
 
 Indices and tables

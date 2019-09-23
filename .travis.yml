@@ -20,8 +20,7 @@ env:
   - OE_LICENSE="$HOME/oe_license.txt"
   - secure: rkFmK3c5k9y1lNdUQr4hj12taCk4gohNwiLNtyl+tZiJBnAwIZPjRTW8WpvQgXN7j8QYilWvhIFJYxQ/hbawjvbkJ3RYpqkx28WBj9VIiEk+0l9sr3gllpfFi17x9950Shh8HFx3qI6KKKvQdimZlg3MUjnz5HoPT/pis10S5cWGiKHUELF+sehz//feuCTmJuyNAzgd7Nk+BTFXI7929a+ONvLfIwzShzKn0bt8ikRfztJ+Du3SpQURnc1vJvMtXATcnDfS70h8KNc1M6uM1aTUw0ut5+R417wb6dO8HxaD0Jbk5iHewk/GpH+E0heJiLWo1TLJwNvTVv8wZtbVuQga+4zqRpnLaI8hY+GJn06HFHtUW+cWfs7TY8NZ7Y/X5I4az1HynCNwG0/VT1xDD/twLCENtaCc/LkQaI3M4TYje5sZJf6CiSGtAR68csC5P9W2ymf+5nGQQCqgiNEfKK10u7qi4zA+Eg1pF/hm4FrR1PnM8+FBb7/+LD+ZUlFgYQ8ykEupc7O49xzr5HvRTNBOTkLEQFiMdp6LIKW4zcgDVWxIxlu1A8ARyv2iCKlumv3DMjlXn9LX0doJsWQeHDs6Tru1yC+Jimp7rpJrgAOIvaVMgbIaqPEMgieJMSLlPEAf5vWQBVRecLT/cazlSx31zzQzquNjJ9duKy10Exw=
 before_install:
-- openssl aes-256-cbc -K $encrypted_0111e4703a17_key -iv $encrypted_0111e4703a17_iv
-  -in oe_license.txt.enc -out oe_license.txt -d
+- openssl aes-256-cbc -K $encrypted_f2c958c01340_key -iv $encrypted_f2c958c01340_iv -in oe_license.txt.enc -out oe_license.txt -d
 - uname -a
 - df -h
 - ulimit -a

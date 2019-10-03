@@ -1,0 +1,22 @@
+name: resppol
+channels:
+  - openeye
+  - rdkit
+  - omnia
+
+dependencies:
+    # Base depends
+  - python
+  - pip
+  - typing
+  - scipy
+  - numpy
+  - openeye-toolkits
+  - rdkit
+  - openforcefield
+  - pint
+
+    # Testing
+  - pytest
+  - pytest-cov
+

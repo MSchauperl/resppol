@@ -1,5 +1,5 @@
 conda:
-    file: devtools/conda-envs/test_env.yaml
+    file: docs/enviroment.yaml
 python:
-    version: 3
+    version: 3.6
     setup_py_install: true

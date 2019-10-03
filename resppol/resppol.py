@@ -110,7 +110,7 @@ class TrainingSet():
     It consist of multiple molecule instances and combines the optimization matrices and vectors across multiple molecules.
     """
 
-    def __init__(self, mode='q', scaleparameters=None, scf_scaleparameters=None, SCF=False, thole=False):
+    def __init__(self, mode='q', scaleparameters=None, scf_scaleparameters=None, SCF=False, thole=False, FF='resppol/data/test_data/BCCPOL.offxml'):
         """
         Initilize the class and sets the following parameters:
 
@@ -134,8 +134,9 @@ class TrainingSet():
         self.number_of_lines_in_X = 0
         self.X_BCC = 0.0
         self.Y_BCC = 0.0
+        self._FF = FF
         # Label the atoms and bonds using a offxml file
-        forcefield = ForceField(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/BCCPOL.offxml'))
+        forcefield = ForceField(os.path.join(ROOT_DIR_PATH, FF))
 
         self._nalpha = len(forcefield.get_parameter_handler('vdW').parameters)
         self._nbccs = len(forcefield.get_parameter_handler('Bonds').parameters)
@@ -420,7 +421,7 @@ class Molecule:
         self.offtop = openff.Topology.from_molecules([self.offmol])
 
         # Label the atoms and bonds using a offxml file
-        forcefield = ForceField(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/BCCPOL.offxml'))
+        forcefield = ForceField(os.path.join(ROOT_DIR_PATH, self._trainingset._FF))
         if trainingset is None:
             self._trainingset = TrainingSet()
 
@@ -1669,10 +1670,10 @@ class BCCPolESP(ESPGRID):
 
         self.e_field_at_atom = np.zeros((3, self._conformer.natoms))
 
-"""
+
 if __name__ == '__main__':
     pass
-    
+    """
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
     test = TrainingSet(scf_scaleparameters=[0.0, 0.0, 0.5])
     test.add_molecule(datei)

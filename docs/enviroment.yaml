@@ -1,6 +1,5 @@
 name: test
 channels:
-  - rdkit
   - omnia
   - conda-forge
 
@@ -11,8 +10,6 @@ dependencies:
   - typing
   - scipy
   - numpy
-  - rdkit
-  - openforcefield
   - nbsphinx
   - m2r >=0.2.1
   - numpydoc

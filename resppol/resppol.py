@@ -17,6 +17,7 @@ This module should convert a mol2 file int a Molecule object and expose all nece
 
 import logging as log
 import numpy as np
+import sys
 try:
 	from openeye import oechem
 except:
@@ -34,6 +35,12 @@ from pint import UnitRegistry
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
 ureg.define('bohr = 0.52917721067 * angstrom')
+
+##### LOGGER
+
+FORMAT = '%(asctime)s  - %(levelname)s - %(message)s'
+log.basicConfig(format=FORMAT, level=log.DEBUG)
+log.getLogger().addHandler(log.StreamHandler(sys.stdout))
 
 # =============================================================================================
 # GLOBAL PARAMETERS
@@ -55,7 +62,8 @@ def find_eq_atoms(mol1):
     :parameter
     mol1: Openeye molecule object
 
-    TODO Include rdkit support for this function
+    TODO:
+     Include rdkit support for this function
     """
 
     qmol = oechem.OEQMol()
@@ -64,6 +72,12 @@ def find_eq_atoms(mol1):
     oechem.OEBuildMDLQueryExpressions(qmol, mol1)
     ss2 = oechem.OESubSearch(qmol)
     oechem.OEPrepareSearch(mol1, ss2)
+    qmol = oechem.OEQMol()
+    oechem.OEBuildMDLQueryExpressions(qmol, mol1)
+    ss2 = oechem.OESubSearch(qmol)
+    oechem.OEPrepareSearch(mol1, ss2)
+    # it is not an error that i actually write this twice.
+    # For phenol it seems to be necessary for an undefined reason.
 
     # Store the equivalent atoms
     eq_atoms = [[] for i in range(mol1.NumAtoms())]
@@ -120,31 +134,59 @@ class TrainingSet():
         :param SCF:
         :param thole:
         """
+        #Reading input and setting default values
+        # ToDo add logging messages to the definition
         self.molecules = list()
+        # Initialize matrix B with no values
         self.B = np.zeros(0)
+        # Initialize matrix A with 2 dimensions and no values
         self.A = np.zeros((0, 0))
+        # Initialize vector q with charge 0.0
+        #ToDo: Check if this makes sense
         self.q = 0.0
+        # Mode defines if we are optimizing charges, BCCs or Polarizabilites
+        # Simulatenous optimization of charges or BCCs with Polarizabilities is possible
         self.mode = mode
+        # Set SCF scaling parameter for all molecules
+        # ToDo maybe i want to add a default value here
         self.scf_scaleparameters = scf_scaleparameters
+        # Scaling parameters for charge charge interaction and charge dipole interaction
+        # ToDo maybe i want to add a default value here
         self.scaleparameters = scaleparameters
+        # Define if we use SCF or not default is the direct approach
         self._SCF = SCF
+        # If thole scaling is applied
+        # ToDo Check if in adding to scaling or instead
         self._thole = thole
+        # ToDo Delete due to repetion. Check if always _mode is used before doing that thought.
         self._mode = mode
+        # counts the number of optimization steps required
         self.step = 0
+        # Counts the number of the charge /BCC matrix part
         self.number_of_lines_in_X = 0
+        # Not sure
+        # ToDo Check what this is good for
         self.X_BCC = 0.0
         self.Y_BCC = 0.0
+        # Set the force-field file which is used for all molecules
         self._FF = FF
-        # Label the atoms and bonds using a offxml file
+
+        # This block describes how to label the atoms and bonds using a offxml file
+
+        # Read in the forcefield using the ForceField class of the openforcefield toolkit
         forcefield = ForceField(os.path.join(ROOT_DIR_PATH, FF))
 
+        # Number of different polarization types
         self._nalpha = len(forcefield.get_parameter_handler('vdW').parameters)
+
+        #Number of different BCCs definied in the FF
         self._nbccs = len(forcefield.get_parameter_handler('Bonds').parameters)
+        # Assigns a number for every BCC
         self._bccs ={}
         for i,element in enumerate(forcefield.get_parameter_handler('Bonds').parameters):
             self._bccs[element.id] = i
 
-
+        # The same for polarizabilities
         self._alpha = {}
         for i,element in enumerate(forcefield.get_parameter_handler('vdW').parameters):
             self._alpha[element.id] = i
@@ -152,6 +194,8 @@ class TrainingSet():
         self.bccs_old = np.zeros(self._nbccs)
         self.alphas_old = np.zeros(self._nalpha)
 
+    # This function is not done yet
+    # Maybe replace with json format reader and writer
     def load_from_file(self,txtfile):
         """
         Allows to build a TrainingSet instance from an text file.
@@ -169,11 +213,19 @@ class TrainingSet():
 
     def add_molecule(self, datei):
         """
-        Adds a molecule.
+        Adds a molecule to the TrainingSet object.
         :param datei: Mol2 file of a molecule
         :return:
         """
+        #ToDo Check matrix composition
+
+        # Adds the molecule
         self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self))
+
+        # Defines the position of the molecule in the overall matrix.
+        #   A   0       CT          =   B
+        #   0    A(new) C(new)T     =   B(new)
+        #   C    C(new) P           =   B(Pol)
         self.number_of_lines_in_X += self.molecules[-1]._lines_in_X
 
 
@@ -187,17 +239,23 @@ class TrainingSet():
         """
         Builds the matrix A of the underlying molecules and combines them.
 
-        This function is only used for charge optimizatoin RESP
+        This function is only used for charge optimization with RESP
         """
+        #
         for molecule in self.molecules:
+            # Building matrix A on the molecule level
             molecule.build_matrix_A()
+            #Defines the interaction matrix 0 for charge of different molecules
             X12 = np.zeros((len(self.A), len(molecule.A)))
+            # Combines the matrix A of the TrainingSet and the matrix A of the molecule
             self.A = np.concatenate(
                 (np.concatenate((self.A, X12), axis=1), np.concatenate((X12.transpose(), molecule.A), axis=1)), axis=0)
 
     def build_vector_B(self):
         for molecule in self.molecules:
+            # Building the vector B of the molecule.
             molecule.build_vector_B()
+            # Adds the vector B of the molecuel to the existing vector B
             self.B = np.concatenate((self.B, molecule.B))
 
     def build_matrix_X(self):
@@ -222,11 +280,21 @@ class TrainingSet():
             self.X[self.number_of_lines_in_X + i][atoms[1]] = self.X[atoms[1]][self.number_of_lines_in_X + i] = -1
 
 
+    def build_vector_Y(self):
+        self.Y = np.zeros(0)
+        for molecule in self.molecules:
+            molecule.build_vector_Y()
+            self.Y = np.concatenate((self.Y, molecule.Y))
+
+        Y2 =  np.zeros(len(self.intramolecular_polarization_rst))
+        self.Y = np.concatenate((self.Y, Y2))
+    # def get_intramolecular_charge_rst()
+
     def build_matrix_X_BCC(self):
         """
         Builds the matrix X of the underlying molecules and combines them.
 
-        This function is only used for charge optimizatoin RESP
+        This function is only used for optimization of BCCs
         """
 
         for molecule in self.molecules:
@@ -238,27 +306,23 @@ class TrainingSet():
         """
         Builds the matrix X of the underlying molecules and combines them.
 
-        This function is only used for charge optimizatoin RESP
+        This function is only used for optimization of BCCs
         """
 
         for molecule in self.molecules:
             molecule.build_vector_Y_BCC()
             self.Y_BCC += molecule.Y
 
-    def build_vector_Y(self):
-        self.Y = np.zeros(0)
-        for molecule in self.molecules:
-            molecule.build_vector_Y()
-            self.Y = np.concatenate((self.Y, molecule.Y))
 
-        Y2 =  np.zeros(len(self.intramolecular_polarization_rst))
-        self.Y = np.concatenate((self.Y, Y2))
-    # def get_intramolecular_charge_rst()
 
     @property
     def intramolecular_polarization_rst(self):
-
+        # Defines a list of atompairs which are restrained to be equal between different molecules
+        # ToDo Check I do not include intramolecular polarization restraints here,just intermolecular ones
+        # Doublecheck this behviour
+        # Uses Lagrange formalism
         intramolecular_polarization_rst = []
+        # First occurance of an atom with a given polarization type
         first_occurrence_of_parameter = {}
         for molecule in self.molecules:
             first_occurrence_of_parameter_in_molecule = {}
@@ -351,7 +415,9 @@ class TrainingSet():
 class Molecule:
     """
         This class loads in a mol2 file and expose all relevant information. It combines the functionality of
-        an openeye molecule with the functionality of the OFF molecule. The OE part is only needed to determine
+        an openeye molecule with the functionality of the OFF molecule.
+
+        The OE part is only needed to determine
         the chemical equivalent atoms. When this feature is implemented in OFF toolkit the OE molecule is not
         necessary anymore
 
@@ -396,6 +462,7 @@ class Molecule:
         ifs = oechem.oemolistream(datei)
 
         # Read from IFS to molecule
+        # Create OE molecule
         oechem.OEReadMol2File(ifs, self.oemol)
 
         # Check if molecule is a 3 dimensional object
@@ -421,6 +488,7 @@ class Molecule:
         self.offtop = openff.Topology.from_molecules([self.offmol])
 
         # Label the atoms and bonds using a offxml file
+        # Not sure if that is the most sensible thing to do. Maybe revisit this part at a later stage and define differently
         if trainingset is None:
             self._trainingset = TrainingSet()
 
@@ -431,6 +499,7 @@ class Molecule:
 
         # set molecule charge
         # self._charge=openff.Molecule.total_charge
+        # Change this back at a later point. To make charged molecules possible
         self._charge = 0
 
         # Initialize the bonds, atoms
@@ -438,6 +507,7 @@ class Molecule:
         self._atoms = list()
 
         # Define all BCC bonds
+        # ToDo write test for this function
         for i, properties in enumerate(molecule_parameter_list[0]['Bonds'].items()):
             atom_indices, parameter = properties
             self.add_bond(i, atom_indices, parameter.id)
@@ -445,6 +515,7 @@ class Molecule:
         self._nbonds = len(self._bonds)
 
         # Define all atomtypes for polarization
+        # ToDo write test for this function
         for i, properties in enumerate(molecule_parameter_list[0]['vdW'].items()):
             atom_index, parameter = properties
             self.add_atom(i, atom_index[0], parameter.id, atomic_number = AtomicNumbers[atom_index[0]])
@@ -455,7 +526,10 @@ class Molecule:
         self.scale = np.ones((self._natoms, self._natoms))
         self.scale_scf = np.ones((self._natoms, self._natoms))
         self.scaling(scf_scaleparameters=self.scf_scaleparameters, scaleparameters=self.scaleparameters)
+
+        # Defines the bond matrix T:
         self.create_BCCmatrix_T()
+        # Defines the polarization type matrix R
         self.create_POLmatrix_R()
 
         # Initialize conformers
@@ -472,6 +546,8 @@ class Molecule:
             self.alpha_old = np.zeros(3*self._natoms)
         self._lines_in_A =  self._natoms + len(self.chemical_eq_atoms) + 1
         # Initiliaxe charges
+        # Maybe I want to change that later to read charges from the mol2 file
+        # or at least give the option to do so
         self.q_alpha = np.zeros(self._lines_in_X)
 
     def add_bond(self, index, atom_indices, parameter_id):
@@ -772,6 +848,7 @@ class Conformer:
 
         :param conf: openff molecule file
         """
+        # Read in all atomic positions and convert them to Angstrom
         # noinspection PyProtectedMember
         self.atom_positions = Q_(np.array(conf.conformers[0]._value), 'angstrom')
         self.atom_positions_angstrom = self.atom_positions.to('angstrom').magnitude
@@ -1236,6 +1313,10 @@ class Conformer:
         self.q_alpha = np.linalg.solve(self.X, self.Y)
 
 
+    # i constantly have to delete the distatnce matrixes as storing them is too expensive in terms of memory
+    # recomputing them every optimization cyclces has shown to be faster as long as i have not an extensive
+    # amount of RAM available.
+
     def get_distances(self):
         self.get_grid_coord()
 
@@ -1344,10 +1425,14 @@ class ESPGRID:
 
     def define_grid(self, *args, **kwargs):
         for ele in args:
+            # Check if the ending of the file is gesp
             if 'gesp' in ele:
                 self.gridtype = 'gesp'
+            # Check if one of the files end with espf
+            # This is the same as a psi4 file but respyte uses this name
             if 'espf' in ele:
                 self.gridtype = 'respyte'
+            # psi4 type of grid
             if 'grid.dat' in ele:
                 self.gridtype = 'psi4'
 
@@ -1364,13 +1449,19 @@ class ESPGRID:
                 if 'ATOMIC' in line and 'COORDINATES' in line:
                     self.natoms = int(line.strip('\n').split()[-1])
                     for j in range(self.natoms):
+                        # Convert the very unique D in gaussian number to E (the usual)
                         entry = lines[i + 1 + j].replace('D', 'E').split()
                         self.atoms.append(entry[0])
+                        # Units are in Bohr in Gaussian
+                        # pint should allow us to make the conversion easy
                         self.atom_positions.append(Q_([float(entry[k]) for k in range(1, 4, 1)], 'bohr'))
                 if 'GRID' in line:
+                    # number of grid points
                     self.ngrid = int(line.strip('\n').split()[-1])
+                    # Stores the grid
                     grid = lines[i + 1:i + 1 + self.ngrid]
                     break
+            # ToDo combine this with above. Current implementation is correct but dose not make a lot of sense
             # noinspection PyUnboundLocalVariable
             for i, line in enumerate(grid):
                 grid[i] = [float(ele) for ele in line.replace('D', 'E').split()]
@@ -1382,12 +1473,14 @@ class ESPGRID:
             f = open(args[0], 'r')
             lines = f.readlines()
             f.close
+            # I only need every second line because the other line is the electric field at point i
             ndata = int(len(lines) / 2) if len(lines) % 2 == 0 else int((len(lines) - 1) / 2)
             grid = np.zeros((ndata, 4))
             for i in range(ndata):
                 grid[i] = [float(ele) for ele in lines[2 * i].split()]
             self.positions = Q_(np.array(grid)[:, 0:3], 'angstrom')
             self.esp_values = Q_(np.array(grid)[:, 3], 'elementary_charge / bohr')
+        # Assuming that we only have the ESP in the esp.dat file
         elif self.gridtype == 'psi4':
             for ele in args:
                 if "grid.dat" in ele:
@@ -1618,6 +1711,7 @@ class ESPGRID:
 # BCCUnpolESP
 # =============================================================================================
 
+# Inheritace from the ESPGRID class
 class BCCUnpolESP(ESPGRID):
     """
 
@@ -1626,27 +1720,39 @@ class BCCUnpolESP(ESPGRID):
     def __init__(self, *args, conformer=None):
         # Decide if we have a Gaussian grid or a psi4 grid
         self.gridtype = None
+
+        # Initilize values
         self.natoms = -1
+
+        #Initialize array to store the atom position and the element from the ESP file
+        #ToDo Check if those are the same as in the Conformer file
         self.atoms = []
         self.atom_positions = []
+
+        # Checks what grid type psi4 or gaussian was used
         self.define_grid(*args)
+
         self.esp_values = None
         self.positions = None
+
         self._conformer = conformer
 
         # External e-field is 0 in all directions
         vector = Q_([0, 0, 0], 'elementary_charge / bohr / bohr')
         self.set_ext_e_field(vector)
 
+        # Load the grid to self.positions and self.esp_values
         self.load_grid(*args)
 
+        # As the electric field at the atom positions is different for every external polarization
+        # the electric field for each atom has to be stored on the ESPGrid level
         self.e_field_at_atom = np.zeros((3, self._conformer.natoms))
-
+        # No calculation of the e-fields at this stage only initializing
 
 # =============================================================================================
 # BCCPolESP
 # =============================================================================================
-
+# Inheritace from the ESPGRID class
 class BCCPolESP(ESPGRID):
     """
 
@@ -1672,7 +1778,23 @@ class BCCPolESP(ESPGRID):
 
 
 if __name__ == '__main__':
-    pass
+    ifs = oechem.oemolistream('/home/mschauperl/kirk/charge_method/medium_set/molecule2/conf0/mp2_0.mol2')
+    oemol=oechem.OEMol()
+    oechem.OEReadMol2File(ifs, oemol)
+    ifs2 = oechem.oemolistream('/home/mschauperl/kirk/charge_method/medium_set/molecule3/conf0/mp2_0.mol2')
+    oemol2=oechem.OEMol()
+    oechem.OEReadMol2File(ifs2, oemol2)
+    ifs3 = oechem.oemolistream('/home/mschauperl/programs/resppol/resppol/data/test_data/butanol_0.mol2')
+    oemol3=oechem.OEMol()
+    oechem.OEReadMol2File(ifs3, oemol3)
+    log.debug("This is a test")
+    print(find_eq_atoms(oemol))
+    print(find_eq_atoms(oemol))
+    print(find_eq_atoms(oemol2))
+    print(find_eq_atoms(oemol2))
+    print(find_eq_atoms(oemol3))
+    print(find_eq_atoms(oemol3))
+
     """
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/phenol/conf0/mp2_0.mol2')
     test = TrainingSet(scf_scaleparameters=[0.0, 0.0, 0.5])

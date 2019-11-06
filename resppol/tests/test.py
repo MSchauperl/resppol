@@ -6,6 +6,8 @@ import pytest
 import resppol
 import resppol.resppol
 import os
+from openeye import oechem
+
 
 ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..')
 
@@ -28,4 +30,18 @@ def test_charge_fitting_1_conformer():
     assert test.q[:len(test._atoms)].units == 'elementary_charge'
 
 
-test_charge_fitting_1_conformer()
+def test_find_eq_atoms():
+   ifs= oechem.oemolistream(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/butanol_0.mol2'))
+   oemol = oechem.OEMol()
+   oechem.OEReadMol2File(ifs, oemol)
+   x=resppol.resppol.find_eq_atoms(oemol)
+   assert x == [[4, 5], [5, 6], [7, 8], [9, 10]]
+
+
+
+def test_find_eq_atoms2():
+    ifs= oechem.oemolistream(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol.mol2'))
+    oemol = oechem.OEMol()
+    oechem.OEReadMol2File(ifs, oemol)
+    x=resppol.resppol.find_eq_atoms(oemol)
+    assert x == [[1, 2], [3, 4], [8, 9], [10, 11]]

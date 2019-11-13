@@ -112,6 +112,8 @@ def test_1_confomer_polarization():
     # Check e field
     assert test.molecules[0].conformers[0].polESPs[0].e_field_at_atom[1][0] == pytest.approx(-0.0, 0.002)
 
+
+# ToDo redo this test. it is not doing what the name describes
 def test_intermolecular_pol_rst():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test1.mol2')
     test = resppol.resppol.TrainingSet(mode='q_alpha')

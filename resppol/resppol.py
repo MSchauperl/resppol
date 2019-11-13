@@ -21,12 +21,12 @@ import sys
 try:
 	from openeye import oechem
 except:
-	print('Could not import openeye')
+	log.warning('Could not import openeye')
 try:
 	import openforcefield.topology as openff
 	from openforcefield.typing.engines.smirnoff import ForceField
 except:
-	print("Could not import openforcefield")
+	log.warning("Could not import openforcefield")
 from scipy.spatial import distance
 import os
 # Initialize units
@@ -39,7 +39,7 @@ ureg.define('bohr = 0.52917721067 * angstrom')
 ##### LOGGER
 
 FORMAT = '%(asctime)s  - %(levelname)s - %(message)s'
-log.basicConfig(format=FORMAT, level=log.DEBUG)
+log.basicConfig(format=FORMAT, level=log.INFO)
 log.getLogger().addHandler(log.StreamHandler(sys.stdout))
 
 # =============================================================================================
@@ -99,6 +99,7 @@ def find_eq_atoms(mol1):
             # Making sure we have not already covered this pair of atoms
             if [element, i] not in sorted_eq_atoms:
                 sorted_eq_atoms.append([i, element])
+
     tmp = []
     for k, ele1 in enumerate(sorted_eq_atoms):
         exclude = 0
@@ -153,13 +154,22 @@ class TrainingSet():
         # Scaling parameters for charge charge interaction and charge dipole interaction
         # ToDo maybe i want to add a default value here
         self.scaleparameters = scaleparameters
+        log.info('Charge Dipole interactions are scaled using the following parameters {}. '.format(self.scaleparameters))
+        log.info('If non are specified the default is 0.0, 0.0, 0.8333. '
+                 'This means that 1-2 and 1-3 interactions are neglected and 1-4 are scaled by a factor 0.8333. ')
         # Define if we use SCF or not default is the direct approach
         self._SCF = SCF
         # If thole scaling is applied
-        # ToDo Check if in adding to scaling or instead
         self._thole = thole
+        if self._SCF == True and self._thole == False:
+            log.info('''Dipoles are calculated using the self-consistent field approach
+                        The interactions are scaled using the following scaling factors: {}'''.format(self.scf_scaleparameters))
+        if self._SCF == True and self._thole == True:
+            log.info('''Dipoles are calculated using the self-consistent field approach
+                    The interactions are scaled using a thole distance based scheme''')
         # ToDo Delete due to repetion. Check if always _mode is used before doing that thought.
         self._mode = mode
+        log.info('Running in Mode: {}'.format(self._mode))
         # counts the number of optimization steps required
         self.step = 0
         # Counts the number of the charge /BCC matrix part
@@ -170,12 +180,11 @@ class TrainingSet():
         self.Y_BCC = 0.0
         # Set the force-field file which is used for all molecules
         self._FF = FF
-
         # This block describes how to label the atoms and bonds using a offxml file
 
         # Read in the forcefield using the ForceField class of the openforcefield toolkit
         forcefield = ForceField(os.path.join(ROOT_DIR_PATH, FF))
-
+        log.info('The forcefield used for this run is {} '.format(os.path.join(ROOT_DIR_PATH, FF)))
         # Number of different polarization types
         self._nalpha = len(forcefield.get_parameter_handler('vdW').parameters)
 
@@ -220,8 +229,8 @@ class TrainingSet():
         #ToDo Check matrix composition
 
         # Adds the molecule
-        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self))
-
+        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self,id=len(self.molecules)))
+        log.info('Added molecule number {} from file {}.'.format(len(self.molecules)-1,datei))
         # Defines the position of the molecule in the overall matrix.
         #   A   0       CT          =   B
         #   0    A(new) C(new)T     =   B(new)
@@ -242,9 +251,10 @@ class TrainingSet():
         This function is only used for charge optimization with RESP
         """
         #
-        for molecule in self.molecules:
+        for i,molecule in enumerate(self.molecules):
             # Building matrix A on the molecule level
             molecule.build_matrix_A()
+            log.info('Build matrix A (only charge optimization) for molecule {}'.format(i))
             #Defines the interaction matrix 0 for charge of different molecules
             X12 = np.zeros((len(self.A), len(molecule.A)))
             # Combines the matrix A of the TrainingSet and the matrix A of the molecule
@@ -252,9 +262,10 @@ class TrainingSet():
                 (np.concatenate((self.A, X12), axis=1), np.concatenate((X12.transpose(), molecule.A), axis=1)), axis=0)
 
     def build_vector_B(self):
-        for molecule in self.molecules:
+        for i,molecule in enumerate(self.molecules):
             # Building the vector B of the molecule.
             molecule.build_vector_B()
+            log.info('Build vector B (only charge optimization) for molecule {}'.format(i))
             # Adds the vector B of the molecuel to the existing vector B
             self.B = np.concatenate((self.B, molecule.B))
 
@@ -265,8 +276,9 @@ class TrainingSet():
 
         This function is only used for charge optimizatoin RESP
         """
-        for molecule in self.molecules:
+        for i,molecule in enumerate(self.molecules):
             molecule.build_matrix_X()
+            log.info('Build matrix X for molecule {}'.format(i))
             X12 = np.zeros((len(self.X), len(molecule.X)))
             self.X = np.concatenate(
                 (np.concatenate((self.X, X12), axis=1), np.concatenate((X12.transpose(), molecule.X), axis=1)), axis=0)
@@ -282,8 +294,9 @@ class TrainingSet():
 
     def build_vector_Y(self):
         self.Y = np.zeros(0)
-        for molecule in self.molecules:
+        for i,molecule in enumerate(self.molecules):
             molecule.build_vector_Y()
+            log.info('Build vector Y for molecule {}'.format(i))
             self.Y = np.concatenate((self.Y, molecule.Y))
 
         Y2 =  np.zeros(len(self.intramolecular_polarization_rst))
@@ -297,8 +310,9 @@ class TrainingSet():
         This function is only used for optimization of BCCs
         """
 
-        for molecule in self.molecules:
+        for i,molecule in enumerate(self.molecules):
             molecule.build_matrix_X_BCC()
+            log.info('Build matrix X BCC for molecule {}'.format(i))
             self.X_BCC += molecule.X
 
 
@@ -309,8 +323,9 @@ class TrainingSet():
         This function is only used for optimization of BCCs
         """
 
-        for molecule in self.molecules:
+        for i,molecule in enumerate(self.molecules):
             molecule.build_vector_Y_BCC()
+            log.info('Build vector Y BCC for molecule {}'.format(i))
             self.Y_BCC += molecule.Y
 
 
@@ -332,27 +347,39 @@ class TrainingSet():
                 elif atom._parameter_id not in first_occurrence_of_parameter_in_molecule.keys():
                     intramolecular_polarization_rst.append(
                         [first_occurrence_of_parameter[atom._parameter_id], molecule._position_in_A + atom._id + molecule._lines_in_A])
+        log.info('Apply the following intramolecular polarization restaraints {}'.format(intramolecular_polarization_rst))
         return intramolecular_polarization_rst
 
     def optimize_charges_alpha(self,criteria = 10E-5):
         converged = False
-        while converged == False:
+        self.counter = 0
+        while converged == False and self.counter<100:
+        #while self.counter < 10:
+            log.warning('Optimization Step {}'.format(self.counter))
             self.optimize_charges_alpha_step()
             converged = True
-            for molecule in self.molecules:
+            self.counter += 1
+            for num,molecule in enumerate(self.molecules):
                 molecule.step +=1
                 if not all(abs(molecule.q - molecule.q_old) <criteria) or not all(abs(molecule.alpha - molecule.alpha_old) <criteria) :
                     converged = False
+                    log.info('Optimization step {}: Molekule {}: Charges'.format(self.counter,num))
+                    log.info(molecule.q)
+                    log.info('Optimization step {}: Molekule {}: Dipoles'.format(self.counter,num))
+                    log.info(molecule.alpha)
                 molecule.q_old = molecule.q
-                print(molecule.q)
-                print(molecule.alpha)
-                molecule.alpha_old =molecule.alpha
+                molecule.alpha_old = molecule.alpha
+                log.debug(molecule.q)
+                log.debug(molecule.alpha)
+            if self.counter ==99:
+                log.warning('Optimization did not converge. Stopped after 100 cycles.')
 
 
 
     def optimize_charges_alpha_step(self):
         self.build_matrix_X()
         self.build_vector_Y()
+        #log.info(self.X)
         self.q_alpha = np.linalg.solve(self.X, self.Y)
         # Update the charges of the molecules below
         q_alpha_tmp = self.q_alpha
@@ -360,20 +387,29 @@ class TrainingSet():
             molecule.q_alpha = q_alpha_tmp[:len(molecule.X)]
             q_alpha_tmp = q_alpha_tmp[len(molecule.X):]
             molecule.update_q_alpha()
+        log.info('Updating charges and polarization parameters for all molecules')
+
 
     def optimize_bcc_alpha(self,criteria = 10E-5):
         converged = False
-        while converged == False:
+        self.counter =0
+        while converged == False and self.counter <100:
+            log.warning('Optimization Step {}'.format(self.counter))
             self.optimize_bcc_alpha_step()
-            for molecule in self.molecules:
+            self.counter+=1
+            for num,molecule in enumerate(self.molecules):
                 molecule.step +=1
-                print(molecule.q)
-                print(molecule.alpha)
+            log.info('Optimization step {}: BCCs'.format(self.counter))
+            log.info(self.bccs)
+            log.info('Optimization step {}: Dipoles'.format(self.counter))
+            log.info(self.alphas)
             if all(abs(self.bccs - self.bccs_old) < criteria) and all(abs(self.alphas - self.alphas_old)< criteria):
                 converged = True
             else:
                 self.alphas_old = self.alphas
                 self.bccs_old = self.bccs
+            if self.counter ==99:
+                log.warning('Optimization did not converge. Stopped after 100 cycles.')
 
 
     def optimize_bcc_alpha_step(self):
@@ -391,6 +427,7 @@ class TrainingSet():
         self.alphas = self.bcc_alpha[self._nbccs:]
         for molecule in self.molecules:
             molecule.update_bcc(self.bccs, self.alphas)
+        log.info('Updating Bccs for all molecules')
 
 
 
@@ -426,9 +463,10 @@ class Molecule:
         :return:
         """
 
-    def __init__(self, datei, position=0, trainingset=None):
+    def __init__(self, datei, position=0, trainingset=None,id=None):
 
         # Get Molecle name from filename
+        self.id = id
         self.B = 0.0
         self.A = 0.0
         self.X = 0.0
@@ -562,6 +600,7 @@ class Molecule:
         atom_index1 = atom_indices[0]
         atom_index2 = atom_indices[1]
         self._bonds.append(Bond(index, atom_index1, atom_index2, parameter_id))
+        log.info('Add bond with type {} between atom {} and atom {}'.format(parameter_id,atom_index1,atom_index2))
 
     def add_atom(self, index, atom_index, parameter_id, atomic_number=0):
         """
@@ -573,6 +612,7 @@ class Molecule:
         :return:
         """
         self._atoms.append(Atom(index, atom_index, parameter_id, atomic_number= atomic_number))
+        log.info('Add atom type {} on atom {}'.format(parameter_id, atom_index))
 
     def add_conformer_from_mol2(self, mol2file):
         """
@@ -593,6 +633,7 @@ class Molecule:
             raise Exception('Conformer and Molecule does not match')
         else:
             self.conformers.append(Conformer(conf, molecule=self))
+            log.info('Added conformation {} to molecule {}'.format(len(self.conformers)-1,self.id))
         # Checks if this conformer is from this moleule based on atom names
 
     @property
@@ -612,6 +653,7 @@ class Molecule:
                 first_occurrence[atom._parameter_id] = atom._id
             else:
                 array_of_same_pol_atoms.append([first_occurrence[atom._parameter_id], atom._id ])
+        log.info('The following atoms have the same polariztion type: {}'.format(array_of_same_pol_atoms))
         return (array_of_same_pol_atoms)
 
 
@@ -686,6 +728,7 @@ class Molecule:
             self.B += conformer.B
 
     def build_matrix_X(self):
+        self.X=0.0
         for conformer in self.conformers:
             conformer.build_matrix_X()
             self.X += conformer.X
@@ -696,6 +739,7 @@ class Molecule:
             self.X += conformer.X
 
     def build_vector_Y(self):
+        self.Y=0.0
         for conformer in self.conformers:
             conformer.build_vector_Y()
             self.Y += conformer.Y
@@ -1529,7 +1573,6 @@ class ESPGRID:
                 'elementary_charge / angstrom / angstrom').magnitude
 
         self.e = self.e_field_at_atom.flatten()
-        #print(self.e)
         if self._conformer._molecule._SCF and self._conformer._molecule.step > 0:
             if not hasattr(self, 'Bdip') or self._conformer._molecule._thole:
                 if self._conformer._molecule._thole:
@@ -1569,7 +1612,6 @@ class ESPGRID:
                         thole_ft = self._conformer._molecule.scale
                         thole_fe = self._conformer._molecule.scale
                     else:
-                        print('Using different set of scaling for SCF interactions')
                         log.info('Using different set of scaling for SCF interactions')
                 Bdip11 = np.add(np.multiply(thole_fe, self._conformer.diatomic_dist_3), np.multiply(thole_ft,
                                                                                                     -3 * np.multiply(
@@ -1615,7 +1657,7 @@ class ESPGRID:
                 Bdip[j][j] = 1. / alpha[j]
             dipole_scf = np.linalg.solve(Bdip, self.e)
             self.e = np.divide(dipole_scf, alpha)
-            print(self.e)
+            log.debug(self.e)
         self.e_field_at_atom[0] = 1.0 * self.e[:self._conformer.natoms]
         self.e_field_at_atom[1] = 1.0 * self.e[self._conformer.natoms:2 * self._conformer.natoms]
         self.e_field_at_atom[2] = 1.0 * self.e[2 * self._conformer.natoms:3 * self._conformer.natoms]
@@ -1649,7 +1691,6 @@ class ESPGRID:
                     self.q_pot[i] = np.dot(q_alpha[:self.natoms], np.transpose(self._conformer.dist)[i]) + e_dip
                 except:
                     self.q_pot[i] = np.dot(q_alpha[:self.natoms], np.transpose(self._conformer.dist)[i])
-                    # print('DEBUG no electric field ')
             # if self.mode=='d':
             #    self.dipole=qd
             #    e_dip=np.dot(np.multiply(self.dipole[:self.natoms],self.e_x),np.transpose(self.dist_x)[i])+np.dot(np.multiply(self.dipole[self.natoms:2*self.natoms],self.e_y),np.transpose(self.dist_y)[i])+np.dot(np.multiply(self.dipole[2*self.natoms:3*self.natoms],self.e_z),np.transpose(self.dist_z)[i])

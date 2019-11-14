@@ -53,6 +53,7 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 # =============================================================================================
 # PRIVATE SUBROUTINES
 # =============================================================================================
+
 def find_eq_atoms(mol1):
     """
     Finds all equivalent atoms in a molecule.
@@ -111,6 +112,11 @@ def find_eq_atoms(mol1):
     sorted_eq_atoms = tmp
 
     return sorted_eq_atoms
+
+
+def read_charges_from_g09(g09_output):
+    pass
+
 
 
 
@@ -220,7 +226,7 @@ class TrainingSet():
             # noinspection PyTypeChecker
             self.add_molecule(Molecule(mol2file))
 
-    def add_molecule(self, datei):
+    def add_molecule(self, datei,am1_mol2_file=None):
         """
         Adds a molecule to the TrainingSet object.
         :param datei: Mol2 file of a molecule
@@ -229,7 +235,7 @@ class TrainingSet():
         #ToDo Check matrix composition
 
         # Adds the molecule
-        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self,id=len(self.molecules)))
+        self.molecules.append(Molecule(datei, position=self.number_of_lines_in_X, trainingset=self,id=len(self.molecules),am1_mol2_file=am1_mol2_file))
         log.info('Added molecule number {} from file {}.'.format(len(self.molecules)-1,datei))
         # Defines the position of the molecule in the overall matrix.
         #   A   0       CT          =   B
@@ -390,9 +396,11 @@ class TrainingSet():
         log.info('Updating charges and polarization parameters for all molecules')
 
 
-    def optimize_bcc_alpha(self,criteria = 10E-5):
+    def optimize_bcc_alpha(self,criteria = 10E-3):
         converged = False
         self.counter =0
+        # Remove potential from AM1 charges
+        self.substract_am1_potential()
         while converged == False and self.counter <100:
             log.warning('Optimization Step {}'.format(self.counter))
             self.optimize_bcc_alpha_step()
@@ -444,6 +452,9 @@ class TrainingSet():
             molecule.update_q()
 
 
+    def substract_am1_potential(self):
+        for molecule in self.molecules:
+            molecule.substract_am1_potential()
 # =============================================================================================
 # Molecule
 # =============================================================================================
@@ -463,7 +474,7 @@ class Molecule:
         :return:
         """
 
-    def __init__(self, datei, position=0, trainingset=None,id=None):
+    def __init__(self, datei, position=0, trainingset=None,id=None,am1_mol2_file=None):
 
         # Get Molecle name from filename
         self.id = id
@@ -572,6 +583,20 @@ class Molecule:
 
         # Initialize conformers
         self.conformers = list()
+
+        # Load in charges from mol2 file:
+        self.q_am1 = None
+        if am1_mol2_file != None:
+            self.q_am1 = []
+            self.am1mol = oechem.OEMol()
+            # Open Input File Stream
+            ifs = oechem.oemolistream(am1_mol2_file)
+
+            # Read from IFS to molecule
+            # Create OE molecule
+            oechem.OEReadMol2File(ifs, self.am1mol)
+            for atom in self.am1mol.GetAtoms():
+                self.q_am1.append(atom.GetPartialCharge())
 
         # Number of lines for matrix X
         if self._mode == 'q':
@@ -708,7 +733,7 @@ class Molecule:
         :return:
         """
         for i in range(self._natoms):
-            self.q_alpha[i] = np.dot(self.T[i], bccs)
+            self.q_alpha[i] = self.q_am1[i] + np.dot(self.T[i], bccs)
         self.alpha = [np.dot(self.R[i], alphas) for i in range(len(self.R))]
         self.q_alpha[self._lines_in_A:self._lines_in_A + 3* len(self.alpha)] = np.concatenate(
             (np.concatenate((self.alpha, self.alpha)), self.alpha))
@@ -768,6 +793,15 @@ class Molecule:
         self.alpha = self.q_alpha[self._natoms+1+len(self.chemical_eq_atoms):4*self._natoms+1+len(self.chemical_eq_atoms):]
         for conformer in self.conformers:
             conformer.q_alpha = self.q_alpha
+
+    def substract_am1_potential(self):
+        if self.q_am1 is not None:
+            for conformer in self.conformers:
+                conformer.substract_am1_potential()
+        else:
+            self.q_am1 = np.zeros(self._natoms)
+            log.warning('NO AM1 charges are definied')
+
 
     def scaling(self, scaleparameters=None, scf_scaleparameters=None):
         """
@@ -902,6 +936,7 @@ class Conformer:
         self._molecule = molecule
         self.q_alpha = self._molecule.q_alpha
         self._lines_in_A = self._molecule._lines_in_A
+        self.q_am1 = self._molecule.q_am1
 
         # Initiliaze Electric field vectors
         self.e_field_at_atom = np.zeros((3, self.natoms))
@@ -1332,6 +1367,12 @@ class Conformer:
         for polESP in self.polESPs:
             polESP.get_electric_field()
 
+    def substract_am1_potential(self):
+        self.get_distances()
+        for ESPGRID in [self.baseESP] + self.polESPs:
+            ESPGRID.substract_am1_potential()
+        self.delete_distances()
+
     def optimize_charges_alpha(self):
         """
         Builds the necessary matrix and vector and performs a charge and polarizabilities optimization for this 1 conformation.
@@ -1546,11 +1587,12 @@ class ESPGRID:
 
         # Load permanent charges for BCC method
         # For all other methods this is set to 0.0 STILL HAVE to implment
-        try:
-            self._conformer.q_am1
-        except Exception:
+        if self._conformer.q_am1 is None:
             log.warning('I do not have AM1-type charges')
             self._conformer.q_am1 = np.zeros(self._conformer.natoms)
+        #else:
+        #    log.info('Substracting AM1 charge potential from the ESP values')
+        # ToDo Add Code to substract am1 charge potential
 
         for j in range(self._conformer.natoms):
             self.e_field_at_atom[0][j] = np.dot(
@@ -1663,7 +1705,7 @@ class ESPGRID:
         self.e_field_at_atom[2] = 1.0 * self.e[2 * self._conformer.natoms:3 * self._conformer.natoms]
 
     # Analysation stuff
-    def calc_esp_q_alpha(self, q_alpha):
+    def calc_esp_q_alpha(self, q_alpha, mode='q'):
         """
         Calculates the ESP for a given set of point charges and polarizabilities.
 
@@ -1675,7 +1717,7 @@ class ESPGRID:
         """
         self.q_pot = np.zeros(len(self.esp_values))
         for i in range(len(self.esp_values)):
-            if self._conformer._molecule._mode == 'q':
+            if mode == 'q':
                 self.q_pot[i] = np.dot(q_alpha[:self._conformer.natoms], np.transpose(self._conformer.dist)[i])
             else:
                 dipole = q_alpha[self._conformer._lines_in_A:]
@@ -1695,6 +1737,11 @@ class ESPGRID:
             #    self.dipole=qd
             #    e_dip=np.dot(np.multiply(self.dipole[:self.natoms],self.e_x),np.transpose(self.dist_x)[i])+np.dot(np.multiply(self.dipole[self.natoms:2*self.natoms],self.e_y),np.transpose(self.dist_y)[i])+np.dot(np.multiply(self.dipole[2*self.natoms:3*self.natoms],self.e_z),np.transpose(self.dist_z)[i])
             #    self.q_pot[i]=e_dip
+
+    def substract_am1_potential(self):
+        self.calc_esp_q_alpha(self._conformer.q_am1, mode='q')
+        self.esp_values = Q_(np.subtract(self.esp_values.to('elementary_charge / angstrom').magnitude, self.q_pot),
+                         'elementary_charge / angstrom')
 
     def sub_esp_q_alpha(self, q_alpha):
         """

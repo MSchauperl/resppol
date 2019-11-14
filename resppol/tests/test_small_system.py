@@ -247,7 +247,7 @@ def test_1_confomer_polarization_SCF_rotxz():
         assert ele == pytest.approx(3.48, 0.01)
 
 
-
+@pytest.mark.slow
 def test_2_molecules_bcc_pol_SCF():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
     test = resppol.resppol.TrainingSet(mode='q_alpha',SCF= True, scf_scaleparameters=[1,1,1], scaleparameters=[1,1,1])
@@ -314,6 +314,42 @@ def test_2_molecules_bcc_pol():
             assert ele == pytest.approx(3.40, 0.01)
         for ele in test.molecules[1].q_alpha[3:9]:
             assert ele == pytest.approx(3.40, 0.01)
+
+
+def test_2_molecules_bcc_pol_with_am1_charges():
+    datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')
+    test = resppol.resppol.TrainingSet(mode='q_alpha')
+    test.add_molecule(datei, am1_mol2_file=datei)
+    test.add_molecule(datei, am1_mol2_file=datei)
+    test.molecules[0].add_conformer_from_mol2(datei)
+    test.molecules[1].add_conformer_from_mol2(datei)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3.gesp')
+    test.molecules[0].conformers[0].add_baseESP(espfile)
+    test.molecules[1].conformers[0].add_baseESP(espfile)
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z+.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile,
+                                               e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr'))
+    test.molecules[1].conformers[0].add_polESP(espfile,
+                                               e_field=Q_([0.0, 0.0, 1.0], 'elementary_charge / bohr / bohr'))
+    espfile = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test3_Z-.gesp')
+    test.molecules[0].conformers[0].add_polESP(espfile,
+                                               e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr'))
+    test.molecules[1].conformers[0].add_polESP(espfile,
+                                               e_field=Q_([0.0, 0.0, -1.0], 'elementary_charge / bohr / bohr'))
+    test.optimize_bcc_alpha()
+    assert test.molecules[0].q_alpha[0] == pytest.approx(8.63, 0.01)
+    assert test.molecules[0].q_alpha[1] == pytest.approx(-8.63, 0.01)
+    assert test.molecules[1].q_alpha[0] == pytest.approx(8.63, 0.01)
+    assert test.molecules[1].q_alpha[1] == pytest.approx(-8.63, 0.01)
+    for ele in test.molecules[0].q_alpha[3:9]:
+        assert ele == pytest.approx(3.40, 0.01)
+    for ele in test.molecules[0].q_alpha[3:9]:
+        assert ele == pytest.approx(3.40, 0.01)
+    for ele in test.molecules[1].q_alpha[3:9]:
+        assert ele == pytest.approx(3.40, 0.01)
+    for ele in test.molecules[1].q_alpha[3:9]:
+        assert ele == pytest.approx(3.40, 0.01)
+
 
 def test_2_molecules_polarization_thole():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/data/fast_test_data/test2.mol2')

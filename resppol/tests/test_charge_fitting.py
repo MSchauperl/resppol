@@ -16,7 +16,6 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 ######################################################################################
 
 
-@pytest.mark.slow
 def test_trainingset_1_molecule():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = resppol.resppol.TrainingSet()
@@ -32,7 +31,6 @@ def test_trainingset_1_molecule():
     assert test.q.units == 'elementary_charge'
 
 
-@pytest.mark.slow
 def test_trainingset_2_moleculse():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = resppol.resppol.TrainingSet()

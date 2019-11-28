@@ -31,6 +31,7 @@ from scipy.spatial import distance
 import os
 # Initialize units
 from pint import UnitRegistry
+import resppol.utilities as util
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -112,12 +113,6 @@ def find_eq_atoms(mol1):
     sorted_eq_atoms = tmp
 
     return sorted_eq_atoms
-
-
-def read_charges_from_g09(g09_output):
-    pass
-
-
 
 
 # =============================================================================================

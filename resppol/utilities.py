@@ -19,7 +19,6 @@ def read_mulliken_from_g09(g09_output):
     f.close()
     element_charge_array=[]
     for linenum,line in enumerate(lines):
-        print(line)
         if 'Mulliken charges' in line:
             while True:
                 if 'Sum' in lines[linenum+2]:
@@ -41,7 +40,7 @@ def load_g09_charges_to_oemol(oemol, g09_output, mol2_output=None):
     :param g09_output: gaussian output file
     :param mol2_output: mol2 output file with updated charges (optional)
 
-    :return: True if su
+    :return: True
     """
 
     #1.) Read in Mulliken charge from a gaussian output file.
@@ -49,14 +48,17 @@ def load_g09_charges_to_oemol(oemol, g09_output, mol2_output=None):
     #2.) Check if structure in gaussian output file is the same as in the mol2 file
     # This comparison is just based on elements are therefore not ideal
     for i,atom in enumerate(oemol.GetAtoms()):
+        if oemol.NumAtoms() != len(element_charges):
+            raise LookupError('Molecule and gaussian output file do not match')
         if atom.GetAtomicNum == atomic_number[element_charges[i][0]]:
-            raise LookupError
+            raise LookupError('Molecule and gaussian output file do not match')
 
     #3.) Assign Charges to oemol
+    for i,atom in enumerate(oemol.GetAtoms()):
+        atom.SetPartialCharge(float(element_charges[i][1]))
 
     #4.) Write mol2 output if requested.
     ofs = oechem.oemolostream()
-    oemol = oechem.OEGraphMol()
 
     #Check if I can open the output file
     if mol2_output is not None:

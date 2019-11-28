@@ -15,7 +15,7 @@ ROOT_DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 # The following tests use gaussian ESP files and mol2 files as input
 ######################################################################################
 
-
+@pytest.mark.slow
 def test_trainingset_1_molecule():
     datei = os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2')
     test = resppol.resppol.TrainingSet()
@@ -151,7 +151,7 @@ def test_load_wrong_conformer():
         test.add_conformer_from_mol2(os.path.join(ROOT_DIR_PATH, 'resppol/data/test_data/phenol_0.mol2'))
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_load_wrong_esp():
     with pytest.raises(Exception):
         test = resppol.resppol.Molecule(os.path.join(ROOT_DIR_PATH, 'resppol/tmp/butanol/conf0/mp2_0.mol2'))
